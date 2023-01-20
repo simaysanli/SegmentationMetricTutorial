@@ -25,6 +25,8 @@ import { WelcomeComponent } from './Components/welcome/welcome.component';
 import { MainPageComponent } from './Components/main-page/main-page.component';
 //import { MathjaxModule } from 'mathjax-angular';
 import {MatCardModule} from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { TemporalComponent } from './Components/Classification/temporal/temporal.component';
 import { BarPlotComponent } from './Components/bar-plot/bar-plot.component';
@@ -70,7 +72,9 @@ import { ArrayComponent } from './Components/Classification/array/array.componen
     AppRoutingModule,
     BrowserAnimationsModule,
     MatTooltipModule,
-    MatCardModule
+    MatCardModule,
+    MatFormFieldModule,
+    MatSelectModule
   ],
   providers: [ClassesService],
   bootstrap: [AppComponent]

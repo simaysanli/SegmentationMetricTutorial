@@ -77,11 +77,11 @@
       <h2>Metrics</h2>
 
       <mat-slide-toggle
-        class="example-margin"
-        [checked]="UICtrlService.showConfMat"
-        (change)="UICtrlService.toggleCM()"
-        matTooltip="Show the confusion matrix in the Metrics drawer"
-        [matTooltipPosition]="'right'"
+              class="example-margin"
+              [checked]="UICtrlService.showConfMat"
+              (change)="UICtrlService.toggleCM()"
+              matTooltip="Show the confusion matrix in the Metrics drawer"
+              [matTooltipPosition]="'right'"
       >
         Confusion Matrix
       </mat-slide-toggle>
@@ -208,6 +208,14 @@
           </div>
         </ng-container>
       </div>
+      <mat-form-field>
+        <mat-label>Select a video number</mat-label>
+        <mat-select [(ngModel)]="scoresService.selectedVideo" (selectionChange)="scoresService.handleVideoSelection($event.value)">
+          <mat-option *ngFor="let option of scoresService.videos" [value]="option">
+            {{ option }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
   </mat-drawer>
 

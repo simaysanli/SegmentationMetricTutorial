@@ -14,7 +14,12 @@ export interface SelectedScore {
 })
 export class ScoresService {
   scores: Array<Score>;
+  video_scores: Array<Score>;
   isMulti : boolean;
+  isSelectedOne: boolean = false;
+  isSelectedVideo: boolean = false;
+  videos : Array<number> = [];
+  selectedVideo: number;
   final_multi_result: Map<number, Array<Score>>;
   visibleScores: Array<boolean>;
   confusionMatrix: Array<Array<number>>;
@@ -26,7 +31,7 @@ export class ScoresService {
     private UICtrlService: ControlUIService,
     private drawService: DrawService
   ) {
-    this.final_multi_result = new Map();
+    this.final_multi_result = new Map(); //TODO: may be defined in the method
   }
 
   getScores() {
@@ -42,8 +47,11 @@ export class ScoresService {
   }
 
   setScores(scores: Array<Score>) {
-    this.scores = scores;
-    console.log('in set scores');
+    if(this.isSelectedOne) {
+      this.video_scores = scores
+    } else {
+      this.scores = scores;
+    }
     this.visibleScores = new Array<boolean>(this.scores.length).fill(true);
   }
 
@@ -76,73 +84,182 @@ export class ScoresService {
     }
   }
 
-  updateMultiScore(overlap_score: number[], i: number, video_count : number) {
+  fillVideos(video_count: number) {
+    for(let i=0; i<video_count; i++) {
+      this.videos[i] = i;
+    }
+  }
+
+  handleVideoSelection(event: any) {
+    this.isSelectedVideo = false;
+    console.log('in handleVideoSelection -> '+event);
+    let video_number = event;
+    let video_score = new Array<Score>();
+    let item = this.final_multi_result.get(video_number) || [];
+    console.log("macroWeighted average test -> "+item[1].macroWeightedAverage);
+    for(let i=0; i<item.length; i++) {
+      let args = {
+        name: item[i].name,
+        microAverage: item[i].microAverage,
+        macroAverage: item[i].macroAverage,
+        macroWeightedAverage: item[i].macroWeightedAverage,
+      };
+      video_score.push(new Score(args));
+    }
+    this.isSelectedVideo = true;
+    this.fillOneMetricTable(video_score);
+
+  }
+
+  calculateMultiScore(overlap_score: number[], i: number, video_count : number) {
+    this.fillVideos(video_count);
     let statsComputer = new Stats(
-      this.confusionMatrix,
-      this.UICtrlService.ignoreFirstClassMetric
+        this.confusionMatrix,
+        this.UICtrlService.ignoreFirstClassMetric
     );
 
-    let newScores = statsComputer.updateMultiScore(overlap_score);
-    let myScores = new Array<Score>();
+    let newScores = statsComputer.updateScore(overlap_score);
     this.final_multi_result.set(i, newScores);
-
     if (this.final_multi_result.size == video_count) {
-      let micro_res = Array<number>();
-      for(let i=0; i<video_count; i++) {
-        //TODO: take average of metrics and show them
-        let item = this.final_multi_result.get(i) || [];
-        console.log('item size ->' +item.length);
-        for(let j=0; j<item.length; j++) {
-          if(!Number.isNaN(micro_res[i])) {
-            micro_res[j] += item[j].microAverage;
-          } else {
-            micro_res[j] = item[j].microAverage;
-          }
-          console.log(item[j].name);
-          console.log('micro_res[j]'+micro_res[j]);
-        }
-      }
-      for(let i=0; i<micro_res.length; i++) {
-        micro_res[i] = micro_res[i]/video_count;
-      }
+        this.updateMultiScore(video_count);
+    }
+  }
+
+  //holds aggregated result for dataset level
+  updateMultiScore(video_count : number) {
+      this.isSelectedVideo = false;
+      this.isSelectedOne = false; // for setScores method
+      let myScores = new Array<Score>();
+
+      let micro_result = this.calculateMicroAverage(video_count);
+      let macro_res = this.calculateMacroAverage(video_count);
+      let weighted_res = this.calculateWeightedAverage(video_count);
+
       let item = this.final_multi_result.get(0) || [];
       for(let i=0; i<item.length; i++) {
         let args = {
           name: item[i].name,
-          microAverage: micro_res[i],
-          macroAverage: 0.0,
-          macroWeightedAverage: 0.0,
+          microAverage: micro_result.get(item[i].name),
+          macroAverage: macro_res.get(item[i].name),
+          macroWeightedAverage: weighted_res.get(item[i].name),
         };
-        console.log('in args');
-        console.log(micro_res[i]);
+
         myScores.push(new Score(args));
       }
-      for(let i=0; i<myScores.length; i++) {
-        console.log('after calculation name of metric -> '+myScores[i].name);
-        console.log(myScores[i].microAverage);
+      this.fillMetricTable(myScores);
+  }
+
+  calculateMicroAverage(video_count : number) {
+    let macroMap = new Map<string, number>();
+    let newMap = new Map<string, number>();
+    for(let i=0; i<video_count; i++) {
+      let item = this.final_multi_result.get(i) || [];
+      for(let i=0; i<item.length; i++) {
+        if(macroMap.has(item[i].name)) {
+          let num = macroMap.get(item[i].name);
+          if(num !== undefined) {
+            macroMap.set(item[i].name, num +item[i].microAverage);
+          }
+        } else {
+          macroMap.set(item[i].name, item[i].microAverage);
+        }
       }
-      console.log('myScores -> '+myScores);
-      if (this.scores) {
-        let existingScoresNames: Array<string> = this.scores.map<string>(
+    }
+    macroMap.forEach((value, key) => {
+      newMap.set(key, value / video_count);
+    });
+    return newMap;
+  }
+
+  calculateMacroAverage(video_count : number) {
+    let macroMap = new Map<string, number>();
+    let newMap = new Map<string, number>();
+    for(let i=0; i<video_count; i++) {
+        let item = this.final_multi_result.get(i) || [];
+        for(let i=0; i<item.length; i++) {
+          if(macroMap.has(item[i].name)) {
+            let num = macroMap.get(item[i].name);
+            if(num !== undefined) {
+              macroMap.set(item[i].name, num +item[i].macroAverage);
+            }
+          } else {
+            macroMap.set(item[i].name, item[i].macroAverage);
+          }
+        }
+    }
+    macroMap.forEach((value, key) => {
+      newMap.set(key, value / video_count);
+    });
+    return newMap;
+  }
+
+  calculateWeightedAverage(video_count : number) {
+    let macroMap = new Map<string, number>();
+    let newMap = new Map<string, number>();
+    for(let i=0; i<video_count; i++) {
+      let item = this.final_multi_result.get(i) || [];
+      for(let i=0; i<item.length; i++) {
+        if(macroMap.has(item[i].name)) {
+          let num = macroMap.get(item[i].name);
+          if(num !== undefined) {
+            macroMap.set(item[i].name, num +item[i].macroWeightedAverage);
+          }
+        } else {
+          macroMap.set(item[i].name, item[i].macroWeightedAverage);
+        }
+      }
+    }
+    macroMap.forEach((value, key) => {
+      newMap.set(key, value / video_count);
+    });
+    return newMap;
+  }
+
+  fillMetricTable(myScores: Array<Score>) {
+    if (this.scores) {
+      let existingScoresNames: Array<string> = this.scores.map<string>(
           (element) => {
             return element.name;
           }
-        );
-        for (let i = 0; i < myScores.length; i++) {
-          console.log('to be saved for myScores');
-          let name: string = myScores[i].name;
-          let indexOf = existingScoresNames.indexOf(name);
-          if (indexOf >= 0) {
-            this.scores[indexOf].update(myScores[i]);
-          } else {
-            this.scores.push(myScores[i]);
-          }
+      );
+      for (let i = 0; i < myScores.length; i++) {
+        console.log('to be saved for myScores');
+        let name: string = myScores[i].name;
+        let indexOf = existingScoresNames.indexOf(name);
+        if (indexOf >= 0) {
+          this.scores[indexOf].update(myScores[i]);
+        } else {
+          this.scores.push(myScores[i]);
         }
-        console.log('this scores -> '+this.scores);
-        this.setScores(this.scores);
-      } else {
-        this.setScores(myScores);
       }
+      console.log('this scores -> '+this.scores);
+      this.setScores(this.scores);
+    } else {
+      this.setScores(myScores);
+    }
+  }
+
+  //for one video table result
+  fillOneMetricTable(myScores: Array<Score>) {
+    this.isSelectedOne = true;
+    if (this.video_scores) {
+      let existingScoresNames: Array<string> = this.video_scores.map<string>(
+          (element) => {
+            return element.name;
+          }
+      );
+      for (let i = 0; i < myScores.length; i++) {
+        let name: string = myScores[i].name;
+        let indexOf = existingScoresNames.indexOf(name);
+        if (indexOf >= 0) {
+          this.video_scores[indexOf].update(myScores[i]);
+        } else {
+          this.video_scores.push(myScores[i]);
+        }
+      }
+      this.setScores(this.video_scores);
+    } else {
+      this.setScores(myScores);
     }
   }
 
@@ -209,7 +326,7 @@ export class ScoresService {
     this.initConfMat();
     this.computeConfMatFromArray(pred, gt, this.confusionMatrix);
     let overlap_scores = Stats.calculateOverlap(gt, pred);
-    this.updateMultiScore(overlap_scores, i, video_count);
+    this.calculateMultiScore(overlap_scores, i, video_count);
   }
 
   computeConfMat(

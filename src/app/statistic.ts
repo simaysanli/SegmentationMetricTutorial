@@ -223,7 +223,7 @@ export class Stats {
     return scores;
   }
 
-
+  //TODO: will be tested and deleted
   updateMultiScore(overlap_score: number[]): Array<Score> {
     let scores = new Array<Score>();
     if (this.n_classes == 2) {
@@ -237,6 +237,14 @@ export class Stats {
       let microStats = Stats.getMicroAverageScore(stats);
 
 
+      //calculates weights for each class
+      var class_weights = Array(this.cm[0].length).fill(0);
+      this.cm.forEach(row => row.forEach((val, index) => class_weights[index] += val));
+      let total_instances = 0;
+      for (let i = 0; i < this.cm.length; i++) {
+        total_instances += class_weights[i];
+      }
+
       let keys = Array.from(microStats.keys());
       for (const [key, value] of stats) {
         var avgValues = new Array<number>();
@@ -246,7 +254,12 @@ export class Stats {
             avgValues.push(value[i])
 
         }
-
+        if(key == "Accuracy" || key == "Precision" || key == "Sensitivity") {
+          for (let i = 0; i < value.length; i++) {
+            if (!(this.filteredIndicesFromAvg.includes(i)))
+              avgWeightedValues.push(value[i] * class_weights[i] / total_instances);
+          }
+        }
 
         if (key == 'Overlap') {
           let args = {
@@ -260,7 +273,6 @@ export class Stats {
         }
 
         if (keys.includes(key) && key != 'Overlap') {
-
 
           let args = {
             name: key,
