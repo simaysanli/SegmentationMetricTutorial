@@ -1,0 +1,156 @@
+<!--<div *ngIf="controlUIService.showTooltip" class="container" [ngSwitch]="controlUIService.tooltipType"
+  [ngStyle]="{'top':controlUIService.pos.y+'px', 'left':controlUIService.pos.x+'px'}">
+
+  <div *ngSwitchCase="'Metric'" class="container-horizontal">
+
+    <div>
+      <img src="assets/images/metrics/schema.svg" alt="Schematic of metrics representation">
+    </div>
+
+    <div class="text">
+      When hovering over each metric, a small description, a drawing and the equation will be shown.
+      The equations and the schematics are of a binary classification problem.
+      The drawings are all based over these representations of the predictions and the groundtruth.
+      The circle represents the predictions (positive) of the model and the rectangle the groundtruth.
+      Green represents the positive class and red the negative class.
+    </div>
+  </div>
+
+  <div *ngSwitchCase="'Score'" class="container-horizontal text">
+    For a binary classification problem, the scores represent the metric computed.
+    For a multi-class problem, the scores are only given for the kappa metric and are otherwise
+    represented in the micro- and macro-average column.
+  </div>-->
+
+  <!--Example came from here : https://datascience.stackexchange.com/questions/15989/micro-average-vs-macro-average-performance-in-a-multiclass-classification-settin-->
+  <!--<div *ngSwitchCase="'Micro'" class="container-horizontal text">
+    For a multi-class problem, this column shows the micro-average of the metrics.
+    The micro-average aggregates the contributions of all classes in order to compute the average metric.
+    For example, when computing the micro precision, the true positives and false positives of each class will be
+    summed before being inputed into the formula.
+  </div>
+
+  <div *ngSwitchCase="'Macro'" class="container-horizontal text">
+    For a multi-class problem, this column shows the macro-average of the metrics.
+    The macro average computes the metric independently for each class and then takes the average over all classes
+    (treating all classes equally).
+  </div>-->
+
+  <!------------------------------------------------------------------------------------------------------------>
+  <!--<div *ngSwitchCase="'Precision'" class="container-horizontal">
+    <div>
+      <img src="assets/images/metrics/precision.svg">
+    </div>
+    <div class="text">
+      Fraction of relevant instances among the retrieved instances (w.r.t sensitivity).<br> <br>
+      Metric ranges from 0 to 100 %.<br>
+      <span [mathjax]="precision"></span>
+    </div>
+  </div>
+
+  <div *ngSwitchCase="'Accuracy'" class="container-horizontal">
+    <div>
+      <img src="assets/images/metrics/accuracy.svg">
+    </div>
+
+    <div class="text">
+      Percentage of pixels in the segmentation that are correctly classified. <br> <br>
+      Metric ranges from 0 to 100 %.<br>
+      <span [mathjax]="accuracy"></span>
+    </div>
+  </div>
+
+  <div *ngSwitchCase="'Dice'" class="container-horizontal">
+    <div>
+      <div>
+        <img src="assets/images/metrics/dice.svg">
+      </div>
+    </div>
+
+    <div class="text">
+      Harmonic mean of the precision and sensitivity. <br> <br>
+      Metric ranges from 0 to 100 %.<br>
+      <span [mathjax]="dice"></span>
+
+    </div>
+  </div>
+
+  <div *ngSwitchCase="'Specificity'" class="container-horizontal">
+    <div>
+      <img src="assets/images/metrics/specificity.svg">
+    </div>
+
+    <div class="text">
+      Probability of predicting a negative test. <br> <br>
+      Metric ranges from 0 to 100 %. <br>
+      <span [mathjax]="specificity"></span>
+    </div>
+  </div>
+
+  <div *ngSwitchCase="'Sensitivity'" class="container-horizontal">
+    <div>
+      <img src="assets/images/metrics/sensitivity.svg">
+    </div>
+
+    <div class="text">
+      Fraction of relevant instances that were retrieved (w.r.t. precision) or
+      probability of predicting a positive test (w.r.t specificity).
+      There is a balance to be found between precision and sensitivity (recall) and between sensitivity and specificity. <br> <br>
+      Metric ranges from 0 to 100 %.<br>
+      <span [mathjax]="sensitivity"></span>
+    </div>
+  </div>
+
+
+  <div *ngSwitchCase="'Kappa'" class="container-horizontal">
+    <div class="text">
+      Tells us how much the classifier is better than a random guess.
+      Negative values mean that the classifier is performing less accurately than a random guess (0).
+      Metric of 1 indicates a perfect classifier.<br> <br>
+      Metric ranges from negative values to 1. <br>
+      <span [mathjax]="kappa"></span>
+    </div>
+
+  </div>
+
+  <div *ngSwitchCase="'IoU'" class="container-horizontal">
+    <div>
+      <img src="assets/images/metrics/iou.svg">
+    </div>
+
+    <div class="text">
+      Intersection over Union (Jaccard Index).
+      Overlap between the predicted segmentation and the groudtruth divided by the area of union between both. <br> <br>
+      Metric ranges from 0 to 100 %. <br>
+      <span [mathjax]="iou"></span>
+    </div>
+  </div>
+
+  <div *ngSwitchCase="'Boundary Dice'" class="container-horizontal">
+    <div>
+      <img src="assets/images/metrics/boundaryDice.svg">
+    </div>
+
+    <div class="text">
+      Boundary Dice. A small mask around the boudary of the predictions and groundtruth are computed by dilatation and erosion operations.
+      The Dice metric is then computed only considering those boundaries. <br> <br>
+      Metric ranges from 0 to 100 %. <br>
+      <span [mathjax]="boundaryDice"></span>
+    </div>
+  </div>
+
+
+  <div *ngSwitchCase="'Boundary IoU'" class="container-horizontal">
+    <div>
+      <img src="assets/images/metrics/boundaryIou.svg">
+    </div>
+
+    <div class="text">
+      Boundary Intersection over Union (Jaccard Index). A small mask around the boundary of the predictions and groundtruth are computed by dilatation and erosion operations.
+      The IoU metric is then computed only considering those boundaries. <br> <br>
+      Metric ranges from 0 to 100 %. <br>
+      <span [mathjax]="boundaryIoU"></span>
+    </div>
+  </div>
+
+</div>-->

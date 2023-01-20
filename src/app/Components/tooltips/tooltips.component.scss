@@ -1,0 +1,31 @@
+@import "src/variables.scss";
+
+.container {
+  position: absolute;
+  background-color: rgba(139, 136, 136, 0.7);
+  backdrop-filter: blur(10px);
+  border-width: 2px;
+  border-color: $dark-gray;
+  border-style: solid;
+  z-index: 50;
+  color: white;
+  border-radius: 0.2rem;
+  pointer-events: none;
+  width: 24vw;
+}
+
+.text{
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+img{
+  height: 25vh;
+}
+
+.container-horizontal{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5vw;
+}
