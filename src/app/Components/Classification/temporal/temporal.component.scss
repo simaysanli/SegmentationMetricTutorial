@@ -1,9 +1,15 @@
 .video-container{
+  margin: 3em;
+  video{
+    width: 40%;
+    border-radius: 1%;
+  }
+}
+.download-container{
   margin: 1em;
   video{
-    width: 50%;
+    width: 40%;
     border-radius: 1%;
-    box-shadow: rgba(0, 0, 0, 0.45) 0px 25px 20px -20px;
   }
 }
 .horizontal-container{
@@ -13,7 +19,7 @@
   right: auto;
   flex-direction: row;
   flex-wrap: nowrap;
-  height: 2em;
+  height: 2.5em;
   align-items: center;
   align-content: flex-start;
   width: 5.3%;
@@ -30,7 +36,7 @@
 .phase{
   position: absolute;
   height: 100%;
-  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+
 }
   .cursor{
   --width: 2px;
@@ -42,7 +48,7 @@
   background-color: white;
   cursor:grab;
   z-index: 3;
-  box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px;
+
 }
 .cursor::before,.cursor::after{
   content: '';
@@ -53,7 +59,6 @@
   width: calc(var(--width) + 2px);
   left: 0%;
   z-index: 2;
-  box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px;
   transform: translate(calc(-50% + var(--width)/2), -50%);
 }
 .cursor::after{

@@ -31,13 +31,6 @@
       {{ 'Macro' }}
       </th>
       <th
-        (mouseenter)="UICtrlService.activateTooltip($event, 'Weighted')"
-        (mouseleave)="UICtrlService.deactivateTooltip()"
-        [ngClass]="{hide: !UICtrlService.showWeightedMetrics}"
-      >
-        {{ 'Weighted' }}
-      </th>
-      <th
         *ngFor="let c of classService.classes; let i = index"
         [style.background-color]="classService.getRGBStyleFromClass(i)"
         [ngClass]="{hide: !UICtrlService.showPerClassMetrics}"
@@ -82,13 +75,6 @@
           [ngClass]="{hide: !UICtrlService.showMacroMetrics}"
       >
         {{ formatScore(score.macroAverage) }}
-      </td>
-      <td [style.background-color]="this.scoresService.colorScore(score.macroWeightedAverage)"
-          [ngClass]="{selected: isSelectedMetric(score.name, 'weighted')}"
-          (contextmenu)="toggleScoreSetup($event, score, 'weighted')"
-          [ngClass]="{hide: !UICtrlService.showWeightedMetrics}"
-      >
-        {{ formatScore(score.macroWeightedAverage) }}
       </td>
       <td
         [style.background-color]="this.scoresService.colorScore(s)"
@@ -180,12 +166,6 @@
         {{ 'Macro' }}
       </th>
       <th
-              (mouseenter)="UICtrlService.activateTooltip($event, 'Weighted')"
-              (mouseleave)="UICtrlService.deactivateTooltip()"
-      >
-        {{ 'Weighted' }}
-      </th>
-      <th
               *ngFor="let c of classService.classes; let i = index"
               [style.background-color]="classService.getRGBStyleFromClass(i)"
               [ngClass]="{hide: !UICtrlService.showPerClassMetrics}"
@@ -227,12 +207,6 @@
           (contextmenu)="toggleScoreSetup($event, score, 'macro')"
       >
         {{ formatScore(score.macroAverage) }}
-      </td>
-      <td [style.background-color]="this.scoresService.colorScore(score.macroWeightedAverage)"
-          [ngClass]="{selected: isSelectedMetric(score.name, 'weighted')}"
-          (contextmenu)="toggleScoreSetup($event, score, 'weighted')"
-      >
-        {{ formatScore(score.macroWeightedAverage) }}
       </td>
       <td
               [style.background-color]="this.scoresService.colorScore(s)"
@@ -281,12 +255,6 @@
         >
           {{ 'Macro' }}
         </th>
-        <th
-          (mouseenter)="UICtrlService.activateTooltip($event, 'Weighted')"
-          (mouseleave)="UICtrlService.deactivateTooltip()"
-        >
-          {{ 'Weighted' }}
-        </th>
       </tr>
       <tr
         *ngFor="let score of scoresService.scores; let i = index"
@@ -321,12 +289,6 @@
             (contextmenu)="toggleScoreSetup($event, score, 'macro')"
         >
           {{ formatScore(score.macroAverage) }}
-        </td>
-        <td [style.background-color]="this.scoresService.colorScore(score.macroWeightedAverage)"
-            [ngClass]="{selected: isSelectedMetric(score.name, 'weighted')}"
-            (contextmenu)="toggleScoreSetup($event, score, 'weighted')"
-        >
-          {{ formatScore(score.macroWeightedAverage) }}
         </td>
       </tr>
     </table>

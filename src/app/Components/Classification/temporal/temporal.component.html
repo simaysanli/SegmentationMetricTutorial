@@ -107,7 +107,6 @@
 </div>
 <label class="unselectable" for="gt"> Groundtruth</label>
 <div id="gt" class="horizontal-container" (mouseleave)="stopDragging()">
-  <div class="time-cursor" [style.left.%]="currentTime"></div>
 
   <div
           *ngFor="let phase of listPhaseGt; let isLast = last"
@@ -136,7 +135,6 @@
 
 <label class="unselectable" for="timephase"> Prediction</label>
 <div id="timephase" class="horizontal-container" (mouseleave)="stopDragging()">
-  <div class="time-cursor" [style.left.%]="currentTime"></div>
   <div
     *ngFor="let phase of listPhasePrediction; let isLast = last"
     class="phase"
@@ -174,7 +172,7 @@
   />
 </div>
 
-<div class="flex-vertical vertical-center video-container">
+<div class="flex-vertical vertical-center download-container">
   <button type="button" mat-flat-button (click)="downloadCSV()">
     Export csv file
   </button>

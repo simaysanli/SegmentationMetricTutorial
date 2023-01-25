@@ -247,7 +247,6 @@ export class TemporalComponent implements OnInit {
         perClassScore: item[i].perClassScore,
         microAverage: item[i].microAverage,
         macroAverage: item[i].macroAverage,
-        macroWeightedAverage: item[i].macroWeightedAverage,
       };
       video_score.push(new Score(args));
     }

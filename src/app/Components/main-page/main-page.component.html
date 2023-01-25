@@ -183,17 +183,6 @@
         Macro
       </mat-slide-toggle>
 
-      <mat-slide-toggle
-        *ngIf="UICtrlService.showMetrics"
-        class="example-margin"
-        [checked]="UICtrlService.showWeightedMetrics"
-        (change)="UICtrlService.toggleWeightedMetrics()"
-        matTooltip="Show the metrics w.r.t to each class"
-        [matTooltipPosition]="'right'"
-      >
-        Weighted
-      </mat-slide-toggle>
-
       <div *ngIf="UICtrlService.showMetrics">
         <ng-container
           *ngFor="

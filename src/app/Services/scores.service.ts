@@ -121,7 +121,6 @@ export class ScoresService {
 
       let micro_result = this.calculateMicroAverage(video_count);
       let macro_res = this.calculateMacroAverage(video_count);
-      let weighted_res = this.calculateWeightedAverage(video_count);
 
       let item = this.final_multi_result.get(0) || [];
       for(let i=0; i<item.length; i++) {
@@ -129,7 +128,6 @@ export class ScoresService {
           name: item[i].name,
           microAverage: micro_result.get(item[i].name),
           macroAverage: macro_res.get(item[i].name),
-          macroWeightedAverage: weighted_res.get(item[i].name),
         };
 
         myScores.push(new Score(args));
@@ -174,28 +172,6 @@ export class ScoresService {
             macroMap.set(item[i].name, item[i].macroAverage);
           }
         }
-    }
-    macroMap.forEach((value, key) => {
-      newMap.set(key, value / video_count);
-    });
-    return newMap;
-  }
-
-  calculateWeightedAverage(video_count : number) {
-    let macroMap = new Map<string, number>();
-    let newMap = new Map<string, number>();
-    for(let i=0; i<video_count; i++) {
-      let item = this.final_multi_result.get(i) || [];
-      for(let i=0; i<item.length; i++) {
-        if(macroMap.has(item[i].name)) {
-          let num = macroMap.get(item[i].name);
-          if(num !== undefined) {
-            macroMap.set(item[i].name, num +item[i].macroWeightedAverage);
-          }
-        } else {
-          macroMap.set(item[i].name, item[i].macroWeightedAverage);
-        }
-      }
     }
     macroMap.forEach((value, key) => {
       newMap.set(key, value / video_count);

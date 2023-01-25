@@ -22,8 +22,6 @@ export class ControlUIService {
   showPerClassMetrics: boolean = false;
   showMicroMetrics: boolean = true;
   showMacroMetrics: boolean = true;
-  showWeightedMetrics: boolean = true;
-
   showReference: boolean = true;
   showOverlayReference: boolean = true;
 
@@ -80,9 +78,6 @@ export class ControlUIService {
   }
   toggleMacroMetrics() {
     this.showMacroMetrics = !this.showMacroMetrics;
-  }
-  toggleWeightedMetrics() {
-    this.showWeightedMetrics = !this.showWeightedMetrics;
   }
   toggleScores() {
     this.showScores = !this.showScores;

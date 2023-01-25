@@ -3,13 +3,11 @@ export class Score {
   name: string;
   perClassScore: Array<number>;
   macroAverage: number;
-  macroWeightedAverage: number;
   microAverage: number;
   constructor(setting: {
     name: string;
     score?: number;
     perClassScore?: Array<number>;
-    macroWeightedAverage?: number;
     macroAverage?: number;
     microAverage?: number;
   })
@@ -19,23 +17,19 @@ export class Score {
     if (setting.perClassScore) this.perClassScore = setting.perClassScore;
     if (setting.macroAverage != undefined)
       this.macroAverage = setting.macroAverage;
-    if (setting.macroWeightedAverage != undefined)
-      this.macroWeightedAverage = setting.macroWeightedAverage;
     if (setting.microAverage != undefined)
       this.microAverage = setting.microAverage;
   }
-  update(other:{score?:number, perClassScore?:Array<number>; macroAverage?:number, microAverage?:number, macroWeightedAverage?:number}){
+  update(other:{score?:number, perClassScore?:Array<number>; macroAverage?:number, microAverage?:number}){
     if (other.score != undefined) this.score = other.score;
     if (other.perClassScore) this.perClassScore = other.perClassScore;
     if (other.macroAverage != undefined)
       this.macroAverage = other.macroAverage;
     if (other.microAverage != undefined)
       this.microAverage = other.microAverage;
-    if (other.macroWeightedAverage != undefined)
-      this.macroWeightedAverage = other.macroWeightedAverage;
   }
   format(){
-    return {score:this.score, perClassScore:this.perClassScore, macroAverage:this.macroAverage, microAverage:this.microAverage, macroWeightedAverage:this.macroWeightedAverage}
+    return {score:this.score, perClassScore:this.perClassScore, macroAverage:this.macroAverage, microAverage:this.microAverage}
   }
 }
 
@@ -87,17 +81,16 @@ export class Stats {
     FN: number
   ): Map<string, number> {
     var statistics = new Map<string, number>();
-    statistics.set('Accuracy', (TP+TN) / (P + N + 0.001));
+    statistics.set('Accuracy', (TP+TN) / (P + N));
     statistics.set('Overall Acc', 0.0);
-    statistics.set('Precision', TP / (TP + FP + 0.001));
-    statistics.set('Sensitivity', TP / (P + 0.001));
-    statistics.set('Specificity', TN / (N + 0.001));
-    statistics.set('Dice', (2 * TP) / (2 * TP + FP + (P - TP) + 0.001));
-    statistics.set('F1', (2 * TP) / (2 * TP + FP + FN + 0.001));
+    statistics.set('Precision', TP / (TP + FP));
+    statistics.set('Sensitivity', TP / (TP + FN));
+    statistics.set('Specificity', TN / (TN + FP));
+    statistics.set('Dice', (2 * TP) / (2 * TP + FP + (P - TP)));
+    statistics.set('F1', (2 * TP) / (2 * TP + FP + FN));
     statistics.set('MCC', (TP * TN - FP * FN) / Math.sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN)));
     statistics.set('Overlap Score', 0.0);
-    statistics.set('CSI', TP / (TP + FN + FP + 0.001))
-    //statistics.set('FPR', FP / (FP + TN + 0.001))
+    statistics.set('CSI', TP / (TP + FN + FP))
     return statistics;
   }
   getBinaryClassStats(): Map<string, number> {
@@ -173,17 +166,10 @@ export class Stats {
       let keys = Array.from(microStats.keys());
       for (const [key, value] of stats) {
         var avgValues = new Array<number>();
-        var avgWeightedValues = new Array<number>();
         for (let i = 0; i < value.length; i++) {
           if (!(this.filteredIndicesFromAvg.includes(i)))
             avgValues.push(value[i])
 
-        }
-        if (key == "Accuracy" || key == "Precision" || key == "Sensitivity") {
-          for (let i = 0; i < value.length; i++) {
-            if (!(this.filteredIndicesFromAvg.includes(i)))
-              avgWeightedValues.push(value[i] * class_weights[i] / total_instances);
-          }
         }
 
         if (key == 'Overlap Score') {
@@ -192,24 +178,17 @@ export class Stats {
             perClassScore: overlap_score,
             microAverage: 0.0,
             macroAverage: Stats.getMacroAverage(overlap_score),
-            macroWeightedAverage: 0.0,
           };
           scores.push(new Score(args));
         }
 
         if (key == 'Overall Acc') {
-          var avgWeightedValues = new Array<number>();
-          for (let i = 0; i < overall_acc.length; i++) {
-            if (!(this.filteredIndicesFromAvg.includes(i)))
-              avgWeightedValues.push(overall_acc[i] * class_weights[i] / total_instances);
-          }
 
           let args = {
             name: key,
             perClassScore: overall_acc,
             microAverage: micro_acc,
             macroAverage: Stats.getMacroAverage(overall_acc),
-            macroWeightedAverage: Stats.getMacroWeightedAverage(avgWeightedValues),
           };
           scores.push(new Score(args));
         }
@@ -222,7 +201,6 @@ export class Stats {
             perClassScore: value,
             microAverage: microStats.get(key),
             macroAverage: Stats.getMacroAverage(avgValues),
-            macroWeightedAverage: Stats.getMacroWeightedAverage(avgWeightedValues),
           };
           scores.push(new Score(args));
         }
@@ -266,17 +244,10 @@ export class Stats {
       let keys = Array.from(microStats.keys());
       for (const [key, value] of stats) {
         var avgValues = new Array<number>();
-        var avgWeightedValues = new Array<number>();
         for(let i=0; i<value.length; i++){
           if(!(this.filteredIndicesFromAvg.includes(i)))
             avgValues.push(value[i])
 
-        }
-        if(key == "Accuracy" || key == "Precision" || key == "Sensitivity") {
-          for (let i = 0; i < value.length; i++) {
-            if (!(this.filteredIndicesFromAvg.includes(i)))
-              avgWeightedValues.push(value[i] * class_weights[i] / total_instances);
-          }
         }
 
         if (key == 'Overlap') {
@@ -285,7 +256,6 @@ export class Stats {
             perClassScore: overlap_score,
             microAverage: 0.0,
             macroAverage: Stats.getMacroAverage(overlap_score),
-            macroWeightedAverage: 0.0,
           };
           scores.push(new Score(args));
         }
@@ -297,7 +267,6 @@ export class Stats {
             perClassScore: value,
             microAverage: microStats.get(key),
             macroAverage: Stats.getMacroAverage(avgValues),
-            macroWeightedAverage: Stats.getMacroWeightedAverage(avgWeightedValues),
           };
           scores.push(new Score(args));
         }
@@ -331,13 +300,6 @@ export class Stats {
 
   static getMacroAverage(array: Array<number>) {
     return array.reduce((a, b) => a + b) / array.length;
-  }
-
-  static getMacroWeightedAverage(array: Array<number>) {
-    if(array.length > 0) {
-      return array.reduce((a, b) => a + b);
-    }
-    return 0;
   }
 
   cohenKappa(quadratic: boolean = false): number {
