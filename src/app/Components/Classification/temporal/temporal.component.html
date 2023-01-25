@@ -92,30 +92,43 @@
     </form>
   </div>
 </div>
+<div class="flex-horizontal">
+<div class="verticalGroup growFlex">
+  <mat-form-field *ngIf="scoreService.isMulti">
+    <mat-label>Select a video number</mat-label>
+    <mat-select [(ngModel)]="scoreService.selectedVideo" (selectionChange)="handleVideoSelection($event.value)">
+      <mat-option *ngFor="let option of scoreService.videos" [value]="option">
+        {{ option }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>
+</div>
 <label class="unselectable" for="gt"> Groundtruth</label>
 <div id="gt" class="horizontal-container" (mouseleave)="stopDragging()">
   <div class="time-cursor" [style.left.%]="currentTime"></div>
 
   <div
-    *ngFor="let phase of listPhaseGt; let isLast = last"
-    class="phase"
-    [style.width.%]="phase.width"
-    [style.left.%]="phase.start"
-    (mouseup)="stopDragging()"
-    (mousedown)="phaseAction($event, phase, true)"
-    (mousemove)="dragPhase($event)"
-    (touchmove)="dragPhase($event)"
-    (touchstart)="phaseAction($event, phase)"
-    (touchstop)="stopDragging()"
-    [ngStyle]="{ cursor: !isDragging ? 'auto' : 'grabbing' }"
-    [style.background-color]="classService.getRGBStyleFromClass(phase.label)"
+          *ngFor="let phase of listPhaseGt; let isLast = last"
+          class="phase"
+          [style.width.%]="phase.width"
+          [style.left.%]="phase.start"
+          (mouseup)="stopDragging()"
+          (mousedown)="phaseAction($event, phase, true)"
+          (mousemove)="dragPhase($event)"
+          (touchmove)="dragPhase($event)"
+          (touchstart)="phaseAction($event, phase)"
+          (touchstop)="stopDragging()"
+          [ngStyle]="{ cursor: !isDragging ? 'auto' : 'grabbing' }"
+          [style.background-color]="classService.getRGBStyleFromClass(phase.label)"
   >
     <div
-      *ngIf="!isLast"
-      class="cursor"
-      (mousedown)="startDragging($event, phase)"
-      (touchstart)="startDragging($event, phase)"
-      (mousemove)="dragPhase($event)"
+            *ngIf="!isLast"
+            class="cursor"
+            (mousedown)="startDragging($event, phase)"
+            (touchstart)="startDragging($event, phase)"
+            (mousemove)="dragPhase($event)"
+
     ></div>
   </div>
 </div>
@@ -138,12 +151,12 @@
     [style.background-color]="classService.getRGBStyleFromClass(phase.label)"
   >
     <div
-      *ngIf="!isLast"
-      class="cursor"
-      (mousedown)="startDragging($event, phase)"
-      (touchstart)="startDragging($event, phase)"
-      (mousemove)="dragPhase($event)"
-      (touchmove)="dragPhase($event)"
+            *ngIf="!isLast"
+            class="cursor"
+            (mousedown)="startDragging($event, phase)"
+            (touchstart)="startDragging($event, phase)"
+            (mousemove)="dragPhase($event)"
+            (touchmove)="dragPhase($event)"
     ></div>
   </div>
 </div>

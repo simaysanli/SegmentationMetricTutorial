@@ -88,13 +88,16 @@ export class Stats {
   ): Map<string, number> {
     var statistics = new Map<string, number>();
     statistics.set('Accuracy', (TP+TN) / (P + N + 0.001));
+    statistics.set('Overall Acc', 0.0);
     statistics.set('Precision', TP / (TP + FP + 0.001));
     statistics.set('Sensitivity', TP / (P + 0.001));
     statistics.set('Specificity', TN / (N + 0.001));
     statistics.set('Dice', (2 * TP) / (2 * TP + FP + (P - TP) + 0.001));
     statistics.set('F1', (2 * TP) / (2 * TP + FP + FN + 0.001));
     statistics.set('MCC', (TP * TN - FP * FN) / Math.sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN)));
-    statistics.set('Overlap', 0.0);
+    statistics.set('Overlap Score', 0.0);
+    statistics.set('CSI', TP / (TP + FN + FP + 0.001))
+    //statistics.set('FPR', FP / (FP + TN + 0.001))
     return statistics;
   }
   getBinaryClassStats(): Map<string, number> {
@@ -147,12 +150,12 @@ export class Stats {
     return statistics;
   }
 
-  updateScore(overlap_score: number[]): Array<Score> {
+  updateScore(overlap_score: number[], overall_acc : number[], micro_acc : number): Array<Score> {
     let scores = new Array<Score>();
     if (this.n_classes == 2) {
       let stats = this.getBinaryClassStats();
       for (const [key, value] of stats) {
-        scores.push(new Score({ name: key, score: value }));
+        scores.push(new Score({name: key, score: value}));
       }
     } else {
       let stats = this.getMultiClassStats();
@@ -171,21 +174,19 @@ export class Stats {
       for (const [key, value] of stats) {
         var avgValues = new Array<number>();
         var avgWeightedValues = new Array<number>();
-        for(let i=0; i<value.length; i++){
-          if(!(this.filteredIndicesFromAvg.includes(i)))
+        for (let i = 0; i < value.length; i++) {
+          if (!(this.filteredIndicesFromAvg.includes(i)))
             avgValues.push(value[i])
 
         }
-        if(key == "Accuracy" || key == "Precision" || key == "Sensitivity") {
+        if (key == "Accuracy" || key == "Precision" || key == "Sensitivity") {
           for (let i = 0; i < value.length; i++) {
             if (!(this.filteredIndicesFromAvg.includes(i)))
-              //console.log(class_weights[i] / total_instances);
-              //var calculated_val = value[i] * class_weights[i] / total_instances;
               avgWeightedValues.push(value[i] * class_weights[i] / total_instances);
           }
         }
 
-        if (key == 'Overlap') {
+        if (key == 'Overlap Score') {
           let args = {
             name: key,
             perClassScore: overlap_score,
@@ -196,7 +197,24 @@ export class Stats {
           scores.push(new Score(args));
         }
 
-        if (keys.includes(key) && key != 'Overlap') {
+        if (key == 'Overall Acc') {
+          var avgWeightedValues = new Array<number>();
+          for (let i = 0; i < overall_acc.length; i++) {
+            if (!(this.filteredIndicesFromAvg.includes(i)))
+              avgWeightedValues.push(overall_acc[i] * class_weights[i] / total_instances);
+          }
+
+          let args = {
+            name: key,
+            perClassScore: overall_acc,
+            microAverage: micro_acc,
+            macroAverage: Stats.getMacroAverage(overall_acc),
+            macroWeightedAverage: Stats.getMacroWeightedAverage(avgWeightedValues),
+          };
+          scores.push(new Score(args));
+        }
+
+        if (keys.includes(key) && key != 'Overlap Score' && key != 'Overall Acc') {
 
 
           let args = {
@@ -218,7 +236,7 @@ export class Stats {
           scores.push(s);
         }
       }
-      scores.push(new Score({ name: 'Kappa', score: this.cohenKappa() }));
+      scores.push(new Score({name: 'Kappa', score: this.cohenKappa()}));
     }
     return scores;
   }
@@ -272,7 +290,7 @@ export class Stats {
           scores.push(new Score(args));
         }
 
-        if (keys.includes(key) && key != 'Overlap') {
+        if (keys.includes(key) && key != 'Overlap Score') {
 
           let args = {
             name: key,
@@ -323,6 +341,7 @@ export class Stats {
   }
 
   cohenKappa(quadratic: boolean = false): number {
+    console.log('in cohenKappa');
     let probAgree: number = this.diagValues.reduce((a, b) => a + b) / this.S;
     let probsRandAgree = new Array<number>(this.n_classes);
     for (let i = 0; i < this.n_classes; i++) {
@@ -459,6 +478,42 @@ export class Stats {
     //return Number(final.toFixed(4));
     return final_result;
 
+  }
+
+  static getUniqueNumbers(numbers: number[]): number[] {
+    return Array.from(new Set(numbers));
+  }
+
+  static overall_acc(yTrue: any[], yPred: any[]): number[] {
+    const classLabels = this.getUniqueNumbers(yTrue);
+    const classAccuracies = new Array(classLabels.length).fill(0);
+    const classCounts = new Array(classLabels.length).fill(0);
+
+    for(let i = 0; i < yTrue.length; i++) {
+      const classIndex = classLabels.indexOf(yTrue[i]);
+      classCounts[classIndex]++;
+      if(yTrue[i] == yPred[i]) {
+        classAccuracies[classIndex]++;
+      }
+    }
+
+    for(let i = 0; i < classAccuracies.length; i++) {
+      classAccuracies[i] /= classCounts[i];
+    }
+
+    return classAccuracies;
+  }
+
+  static micro_overall_acc(yTrue: any[], yPred: any[]): number {
+    let correctPredictions = 0;
+
+    for (let i = 0; i < yTrue.length; i++) {
+      if (yTrue[i] === yPred[i]) {
+        correctPredictions++;
+      }
+    }
+
+    return correctPredictions / yTrue.length;
   }
 
 

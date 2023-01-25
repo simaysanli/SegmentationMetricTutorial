@@ -150,111 +150,7 @@
     </tr>
   </table>
 </div>
-<div class="metric1-container" [ngSwitch]="scoresService.isMulti">
-    <!--Multi-class table-->
-    <table *ngSwitchCase="true">
-      <!--Headers-->
-      <tr>
-        <th
-          (mouseenter)="UICtrlService.activateTooltip($event, 'Video Level Metrics')"
-          (mouseleave)="UICtrlService.deactivateTooltip()"
-        >
-          {{ 'Video Level Metrics' }}
-        </th>
-        <th
-          (mouseenter)="UICtrlService.activateTooltip($event, 'Score')"
-          (mouseleave)="UICtrlService.deactivateTooltip()"
-        >
-          {{ 'Score' }}
-        </th>
-        <th
-          (mouseenter)="UICtrlService.activateTooltip($event, 'Micro')"
-          (mouseleave)="UICtrlService.deactivateTooltip()"
-        >
-          {{ 'Micro' }}
-        </th>
-        <th
-          (mouseenter)="UICtrlService.activateTooltip($event, 'Macro')"
-          (mouseleave)="UICtrlService.deactivateTooltip()"
-        >
-          {{ 'Macro' }}
-        </th>
-        <th
-          (mouseenter)="UICtrlService.activateTooltip($event, 'Weighted')"
-          (mouseleave)="UICtrlService.deactivateTooltip()"
-          [ngClass]="{hide: !UICtrlService.showWeightedMetrics}"
-        >
-          {{ 'Weighted' }}
-        </th>
-        <th
-          *ngFor="let c of classService.classes; let i = index"
-          [style.background-color]="classService.getRGBStyleFromClass(i)"
-          [ngClass]="{hide: !UICtrlService.showPerClassMetrics}"
-        >
-          {{ c }}
-        </th>
-      </tr>
-
-      <tr
-        *ngFor="let score of scoresService.scores; let i = index"
-        [ngStyle]="{ display: scoresService.visibleScores[i] ? '' : 'none' }"
-      >
-        <th
-          (mouseenter)="UICtrlService.activateTooltip($event, score.name)"
-          (mouseleave)="UICtrlService.deactivateTooltip()"
-        >
-          {{ score.name }}
-        </th>
-        <td [style.background-color]="this.scoresService.colorScore(score.score)"
-            [ngClass]="{selected: isSelectedMetric(score.name, '')}"
-            (contextmenu)="toggleScoreSetup($event, score, '')"
-        >
-          {{
-          formatScore(
-            score.score,
-            score.name == "Kappa" ? false : true,
-            score.name == "Kappa" ? 2 : 1
-          )
-          }}
-        </td>
-        <td [style.background-color]="this.scoresService.colorScore(score.microAverage)"
-            [ngClass]="{selected: isSelectedMetric(score.name, 'micro')}"
-            (contextmenu)="toggleScoreSetup($event, score, 'micro')"
-        >
-          {{ formatScore(score.microAverage) }}
-        </td>
-        <td [style.background-color]="this.scoresService.colorScore(score.macroAverage)"
-            [ngClass]="{selected: isSelectedMetric(score.name, 'macro')}"
-            (contextmenu)="toggleScoreSetup($event, score, 'macro')"
-        >
-          {{ formatScore(score.macroAverage) }}
-        </td>
-        <td [style.background-color]="this.scoresService.colorScore(score.macroWeightedAverage)"
-            [ngClass]="{selected: isSelectedMetric(score.name, 'weighted')}"
-            (contextmenu)="toggleScoreSetup($event, score, 'weighted')"
-        >
-          {{ formatScore(score.macroWeightedAverage) }}
-        </td>
-        <td
-          [style.background-color]="this.scoresService.colorScore(s)"
-          *ngFor="let s of score.perClassScore; let j = index"
-          (mouseenter)="changeActiveClass(j)"
-          [ngClass]="{
-          selected: isSelectedMetric(score.name, j.toString()),
-          highlight: classService.currentClass == j,
-          fade: classService.currentClass != j,
-          hide: !UICtrlService.showPerClassMetrics
-        }"
-          (contextmenu)="toggleScoreSetup($event, score, j.toString())"
-        >
-          {{ formatScore(s) }}
-        </td>
-      </tr>
-    </table>
-
-</div>
-
-<div class="metric1-container" [ngSwitch]="scoresService.isMulti && scoresService.isSelectedVideo">
+<div class="metric1-container" style="margin: 7px" [ngSwitch]="scoresService.isMulti && scoresService.isSelectedVideo">
   <!--Multi-class table for each video results-->
   <table *ngSwitchCase="true">
     <!--Headers-->
@@ -263,7 +159,7 @@
               (mouseenter)="UICtrlService.activateTooltip($event, 'Metrics')"
               (mouseleave)="UICtrlService.deactivateTooltip()"
       >
-        {{ 'Metrics' }}
+        {{ 'Video Level Metrics' }}
       </th>
       <th
               (mouseenter)="UICtrlService.activateTooltip($event, 'Score')"
@@ -286,7 +182,6 @@
       <th
               (mouseenter)="UICtrlService.activateTooltip($event, 'Weighted')"
               (mouseleave)="UICtrlService.deactivateTooltip()"
-              [ngClass]="{hide: !UICtrlService.showWeightedMetrics}"
       >
         {{ 'Weighted' }}
       </th>
@@ -355,5 +250,85 @@
       </td>
     </tr>
   </table>
+
+</div>
+<div class="metric1-container" [ngSwitch]="scoresService.isMulti">
+    <!--Multi-class table-->
+    <table *ngSwitchCase="true">
+      <!--Headers-->
+      <tr>
+        <th
+          (mouseenter)="UICtrlService.activateTooltip($event, 'Video Level Metrics')"
+          (mouseleave)="UICtrlService.deactivateTooltip()"
+        >
+          {{ 'Dataset Level Metrics' }}
+        </th>
+        <th
+          (mouseenter)="UICtrlService.activateTooltip($event, 'Score')"
+          (mouseleave)="UICtrlService.deactivateTooltip()"
+        >
+          {{ 'Score' }}
+        </th>
+        <th
+          (mouseenter)="UICtrlService.activateTooltip($event, 'Micro')"
+          (mouseleave)="UICtrlService.deactivateTooltip()"
+        >
+          {{ 'Micro' }}
+        </th>
+        <th
+          (mouseenter)="UICtrlService.activateTooltip($event, 'Macro')"
+          (mouseleave)="UICtrlService.deactivateTooltip()"
+        >
+          {{ 'Macro' }}
+        </th>
+        <th
+          (mouseenter)="UICtrlService.activateTooltip($event, 'Weighted')"
+          (mouseleave)="UICtrlService.deactivateTooltip()"
+        >
+          {{ 'Weighted' }}
+        </th>
+      </tr>
+      <tr
+        *ngFor="let score of scoresService.scores; let i = index"
+        [ngStyle]="{ display: scoresService.visibleScores[i] ? '' : 'none' }"
+      >
+        <th
+          (mouseenter)="UICtrlService.activateTooltip($event, score.name)"
+          (mouseleave)="UICtrlService.deactivateTooltip()"
+        >
+          {{ score.name }}
+        </th>
+        <td [style.background-color]="this.scoresService.colorScore(score.score)"
+            [ngClass]="{selected: isSelectedMetric(score.name, '')}"
+            (contextmenu)="toggleScoreSetup($event, score, '')"
+        >
+          {{
+          formatScore(
+            score.score,
+            score.name == "Kappa" ? false : true,
+            score.name == "Kappa" ? 2 : 1
+          )
+          }}
+        </td>
+        <td [style.background-color]="this.scoresService.colorScore(score.microAverage)"
+            [ngClass]="{selected: isSelectedMetric(score.name, 'micro')}"
+            (contextmenu)="toggleScoreSetup($event, score, 'micro')"
+        >
+          {{ formatScore(score.microAverage) }}
+        </td>
+        <td [style.background-color]="this.scoresService.colorScore(score.macroAverage)"
+            [ngClass]="{selected: isSelectedMetric(score.name, 'macro')}"
+            (contextmenu)="toggleScoreSetup($event, score, 'macro')"
+        >
+          {{ formatScore(score.macroAverage) }}
+        </td>
+        <td [style.background-color]="this.scoresService.colorScore(score.macroWeightedAverage)"
+            [ngClass]="{selected: isSelectedMetric(score.name, 'weighted')}"
+            (contextmenu)="toggleScoreSetup($event, score, 'weighted')"
+        >
+          {{ formatScore(score.macroWeightedAverage) }}
+        </td>
+      </tr>
+    </table>
 
 </div>

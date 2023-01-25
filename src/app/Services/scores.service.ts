@@ -5,6 +5,7 @@ import { ControlUIService } from './control-ui.service';
 import { DrawService } from './draw.service';
 import { colorScore } from '../utils';
 import {min} from "rxjs";
+import {TemporalComponent} from "../Components/Classification/temporal/temporal.component";
 export interface SelectedScore {
   score: Score;
   description: string;
@@ -20,6 +21,8 @@ export class ScoresService {
   isSelectedVideo: boolean = false;
   videos : Array<number> = [];
   selectedVideo: number;
+  overall_acc: Array<number> = [];
+  micro_overall_acc : number;
   final_multi_result: Map<number, Array<Score>>;
   visibleScores: Array<boolean>;
   confusionMatrix: Array<Array<number>>;
@@ -29,17 +32,13 @@ export class ScoresService {
   constructor(
     private classService: ClassesService,
     private UICtrlService: ControlUIService,
-    private drawService: DrawService
+    private drawService: DrawService,
   ) {
     this.final_multi_result = new Map(); //TODO: may be defined in the method
   }
 
   getScores() {
     return this.scores;
-  }
-
-  checkIsMultiVideo(isMulti : boolean) {
-    this.isMulti = isMulti;
   }
 
   colorScore(score:number|undefined){
@@ -49,6 +48,10 @@ export class ScoresService {
   setScores(scores: Array<Score>) {
     if(this.isSelectedOne) {
       this.video_scores = scores
+      for(let i=0; i<this.video_scores.length; i++) {
+        console.log(this.video_scores[i].name);
+        console.log(this.video_scores[i].perClassScore);
+      }
     } else {
       this.scores = scores;
     }
@@ -61,7 +64,7 @@ export class ScoresService {
       this.UICtrlService.ignoreFirstClassMetric
     );
 
-    let newScores = statsComputer.updateScore(overlap_score);
+    let newScores = statsComputer.updateScore(overlap_score, this.overall_acc, this.micro_overall_acc);
 
     if (this.scores) {
       let existingScoresNames: Array<string> = this.scores.map<string>(
@@ -84,42 +87,28 @@ export class ScoresService {
     }
   }
 
-  fillVideos(video_count: number) {
+
+  calculateMultiScore(overlap_score: number[], i: number, video_count : number, isVideoUpdate: boolean) {
     for(let i=0; i<video_count; i++) {
       this.videos[i] = i;
     }
-  }
-
-  handleVideoSelection(event: any) {
-    this.isSelectedVideo = false;
-    console.log('in handleVideoSelection -> '+event);
-    let video_number = event;
-    let video_score = new Array<Score>();
-    let item = this.final_multi_result.get(video_number) || [];
-    console.log("macroWeighted average test -> "+item[1].macroWeightedAverage);
-    for(let i=0; i<item.length; i++) {
-      let args = {
-        name: item[i].name,
-        microAverage: item[i].microAverage,
-        macroAverage: item[i].macroAverage,
-        macroWeightedAverage: item[i].macroWeightedAverage,
-      };
-      video_score.push(new Score(args));
-    }
-    this.isSelectedVideo = true;
-    this.fillOneMetricTable(video_score);
-
-  }
-
-  calculateMultiScore(overlap_score: number[], i: number, video_count : number) {
-    this.fillVideos(video_count);
     let statsComputer = new Stats(
         this.confusionMatrix,
         this.UICtrlService.ignoreFirstClassMetric
     );
 
-    let newScores = statsComputer.updateScore(overlap_score);
+    let newScores = statsComputer.updateScore(overlap_score, this.overall_acc, this.micro_overall_acc);
+    for(let i=0; i < newScores.length; i++) {
+      console.log(newScores[i].name);
+      console.log(newScores[i].score);
+    }
     this.final_multi_result.set(i, newScores);
+
+    if(isVideoUpdate) {
+      console.log('update one table');
+      this.fillOneMetricTable(newScores);
+    }
+
     if (this.final_multi_result.size == video_count) {
         this.updateMultiScore(video_count);
     }
@@ -127,7 +116,6 @@ export class ScoresService {
 
   //holds aggregated result for dataset level
   updateMultiScore(video_count : number) {
-      this.isSelectedVideo = false;
       this.isSelectedOne = false; // for setScores method
       let myScores = new Array<Score>();
 
@@ -223,7 +211,6 @@ export class ScoresService {
           }
       );
       for (let i = 0; i < myScores.length; i++) {
-        console.log('to be saved for myScores');
         let name: string = myScores[i].name;
         let indexOf = existingScoresNames.indexOf(name);
         if (indexOf >= 0) {
@@ -232,7 +219,7 @@ export class ScoresService {
           this.scores.push(myScores[i]);
         }
       }
-      console.log('this scores -> '+this.scores);
+      console.log('fill metric for one table');
       this.setScores(this.scores);
     } else {
       this.setScores(myScores);
@@ -318,15 +305,19 @@ export class ScoresService {
   updateConfusionMatrixFromArray(pred: Array<number>, gt: Array<number>) {
     this.initConfMat();
     this.computeConfMatFromArray(pred, gt, this.confusionMatrix);
+    this.overall_acc = Stats.overall_acc(gt, pred);
+    this.micro_overall_acc = Stats.micro_overall_acc(gt, pred);
     let overlap_scores = Stats.calculateOverlap(gt, pred);
     this.updateScore(overlap_scores);
   }
 
-  updateConfusionMatrixFromArrayMultiVideos(pred: Array<number>, gt: Array<number>, i:number, video_count : number) {
+  updateConfusionMatrixFromArrayMultiVideos(pred: Array<number>, gt: Array<number>, i:number, video_count : number, isOneVideoUpdate:boolean) {
     this.initConfMat();
     this.computeConfMatFromArray(pred, gt, this.confusionMatrix);
+    this.overall_acc = Stats.overall_acc(gt, pred);
+    this.micro_overall_acc  = Stats.micro_overall_acc(gt, pred);
     let overlap_scores = Stats.calculateOverlap(gt, pred);
-    this.calculateMultiScore(overlap_scores, i, video_count);
+    this.calculateMultiScore(overlap_scores, i, video_count, isOneVideoUpdate);
   }
 
   computeConfMat(
@@ -387,7 +378,7 @@ export class ScoresService {
     this.computeConfMat(boundary1, boundary2, confMat);
     let stat = new Stats(confMat);
     let overlap_score = [0.0]; //TODO:deneme
-    let scores = stat.updateScore(overlap_score);
+    let scores = stat.updateScore(overlap_score, this.overall_acc, this.micro_overall_acc);
     scores.forEach((element) => {
       if (element.name == 'Dice' || element.name == 'IoU') {
         element.name = 'Boundary ' + element.name;
