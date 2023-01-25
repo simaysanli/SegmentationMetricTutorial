@@ -19,13 +19,14 @@
         mat-button
         (click)="addClass()"
         matTooltip="Click to add one more class"
+        *ngIf="UICtrlService.showEdit"
       >
         <mat-icon>plus_one</mat-icon>
       </button>
     </mat-button-toggle-group>
   </div>
 
-  <div class="verticalGroup">
+  <div class="verticalGroup" *ngIf="UICtrlService.showEdit">
     <mat-button-toggle-group>
       <mat-button-toggle
         [checked]="tool == 'grab'"
@@ -123,7 +124,7 @@
           [style.background-color]="classService.getRGBStyleFromClass(phase.label)"
   >
     <div
-            *ngIf="!isLast"
+            *ngIf="!isLast && UICtrlService.showEdit"
             class="cursor"
             (mousedown)="startDragging($event, phase)"
             (touchstart)="startDragging($event, phase)"
@@ -151,7 +152,7 @@
     [style.background-color]="classService.getRGBStyleFromClass(phase.label)"
   >
     <div
-            *ngIf="!isLast"
+            *ngIf="!isLast && UICtrlService.showEdit"
             class="cursor"
             (mousedown)="startDragging($event, phase)"
             (touchstart)="startDragging($event, phase)"
