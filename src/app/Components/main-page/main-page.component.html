@@ -74,6 +74,15 @@
 
       <mat-divider></mat-divider>
     </div>
+      <mat-slide-toggle
+              class="example-margin"
+              [checked]="UICtrlService.showEdit"
+              (change)="UICtrlService.toggleEdit()"
+              matTooltip="editable mode"
+              [matTooltipPosition]="'right'"
+      >
+        Edit
+      </mat-slide-toggle>
       <h2>Metrics</h2>
 
       <mat-slide-toggle
@@ -208,14 +217,6 @@
           </div>
         </ng-container>
       </div>
-      <mat-form-field>
-        <mat-label>Select a video number</mat-label>
-        <mat-select [(ngModel)]="scoresService.selectedVideo" (selectionChange)="scoresService.handleVideoSelection($event.value)">
-          <mat-option *ngFor="let option of scoresService.videos" [value]="option">
-            {{ option }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
     </div>
   </mat-drawer>
 

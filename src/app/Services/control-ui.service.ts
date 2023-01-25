@@ -11,6 +11,8 @@ export class ControlUIService {
 
   showConfMat: boolean = true;
 
+  showEdit: boolean = false;
+
   showMetrics: boolean = true;
 
   showBarPlot: boolean = true;
@@ -58,6 +60,10 @@ export class ControlUIService {
 
   toggleCM() {
     this.showConfMat = !this.showConfMat;
+  }
+
+  toggleEdit() {
+    this.showEdit = !this.showEdit;
   }
 
   toggleMetrics() {

@@ -37,7 +37,6 @@ export class MetricsComponent implements OnInit {
   }
 
   toggleScoreSetup(event:MouseEvent, score: Score, description:string) {
-    console.log('tooglescore setup');
     event.preventDefault();
 
     let structure = {score:score, description:description}
