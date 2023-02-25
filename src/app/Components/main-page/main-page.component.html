@@ -182,6 +182,15 @@
       >
         Macro
       </mat-slide-toggle>
+      <mat-slide-toggle
+              class="example-margin"
+              [checked]="UICtrlService.showNaN"
+              (change)="UICtrlService.toggleNaN()"
+              matTooltip="Show the segmentation metrics in the Metrics drawer"
+              [matTooltipPosition]="'right'"
+      >
+        NaN
+      </mat-slide-toggle>
 
       <div *ngIf="UICtrlService.showMetrics">
         <ng-container

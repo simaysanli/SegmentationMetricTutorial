@@ -168,7 +168,7 @@
     hidden
     #fileInput
     type="file"
-    (change)="loadSelectedFile($event)"
+    (change)="selectFile($event)"
   />
 </div>
 
@@ -178,3 +178,13 @@
   </button>
 </div>
 
+<div class="flex-vertical vertical-center download-container">
+<mat-form-field>
+  <mat-label>Select a video file</mat-label>
+  <mat-select (selectionChange)="onFileSelected($event)">
+    <mat-option *ngFor="let file of files" [value]="file">
+      {{ file }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+</div>

@@ -19,9 +19,11 @@ export class ScoresService {
   isMulti : boolean;
   isSelectedOne: boolean = false;
   isSelectedVideo: boolean = false;
+  isOneUpdate: boolean = false;
   videos : Array<number> = [];
   selectedVideo: number;
   overall_acc: Array<number> = [];
+  videoMap : Map<number, number>;
   micro_overall_acc : number;
   final_multi_result: Map<number, Array<Score>>;
   visibleScores: Array<boolean>;
@@ -34,7 +36,6 @@ export class ScoresService {
     private UICtrlService: ControlUIService,
     private drawService: DrawService,
   ) {
-    this.final_multi_result = new Map(); //TODO: may be defined in the method
   }
 
   getScores() {
@@ -47,11 +48,7 @@ export class ScoresService {
 
   setScores(scores: Array<Score>) {
     if(this.isSelectedOne) {
-      this.video_scores = scores
-      for(let i=0; i<this.video_scores.length; i++) {
-        console.log(this.video_scores[i].name);
-        console.log(this.video_scores[i].perClassScore);
-      }
+      this.video_scores = scores;
     } else {
       this.scores = scores;
     }
@@ -64,8 +61,7 @@ export class ScoresService {
       this.UICtrlService.ignoreFirstClassMetric
     );
 
-    let newScores = statsComputer.updateScore(overlap_score, this.overall_acc, this.micro_overall_acc);
-
+    let newScores = statsComputer.updateScore(overlap_score, this.overall_acc, this.micro_overall_acc, this.UICtrlService.showNaN);
     if (this.scores) {
       let existingScoresNames: Array<string> = this.scores.map<string>(
         (element) => {
@@ -87,8 +83,7 @@ export class ScoresService {
     }
   }
 
-
-  calculateMultiScore(overlap_score: number[], i: number, video_count : number, isVideoUpdate: boolean) {
+  calculateMultiScore(overlap_score: number[], i: number, video_count : number) {
     for(let i=0; i<video_count; i++) {
       this.videos[i] = i;
     }
@@ -97,20 +92,16 @@ export class ScoresService {
         this.UICtrlService.ignoreFirstClassMetric
     );
 
-    let newScores = statsComputer.updateScore(overlap_score, this.overall_acc, this.micro_overall_acc);
-    for(let i=0; i < newScores.length; i++) {
-      console.log(newScores[i].name);
-      console.log(newScores[i].score);
-    }
+    let newScores = statsComputer.updateScore(overlap_score, this.overall_acc, this.micro_overall_acc, this.UICtrlService.showNaN);
     this.final_multi_result.set(i, newScores);
-
-    if(isVideoUpdate) {
-      console.log('update one table');
-      this.fillOneMetricTable(newScores);
-    }
 
     if (this.final_multi_result.size == video_count) {
         this.updateMultiScore(video_count);
+        if(this.isOneUpdate) { //if one video update
+          let score = this.final_multi_result.get(i) || [];
+          this.fillOneMetricTable(score);
+          this.isOneUpdate = false;
+        }
     }
   }
 
@@ -144,7 +135,7 @@ export class ScoresService {
         if(macroMap.has(item[i].name)) {
           let num = macroMap.get(item[i].name);
           if(num !== undefined) {
-            macroMap.set(item[i].name, num +item[i].microAverage);
+            macroMap.set(item[i].name, num + item[i].microAverage);
           }
         } else {
           macroMap.set(item[i].name, item[i].microAverage);
@@ -160,10 +151,22 @@ export class ScoresService {
   calculateMacroAverage(video_count : number) {
     let macroMap = new Map<string, number>();
     let newMap = new Map<string, number>();
+    let macro_precision = new Map<number, [number, number]>();
+    let macro_recall = new Map<number, [number, number]>();
+    let macro_acc = 0;
     for(let i=0; i<video_count; i++) {
         let item = this.final_multi_result.get(i) || [];
         for(let i=0; i<item.length; i++) {
-          if(macroMap.has(item[i].name)) {
+          if(item[i].name == 'Precision') {
+            let vd_count = video_count;
+            this.calculateMacroAll(item[i].perClassScore, macro_precision, vd_count);
+          }
+          if(item[i].name == 'Sensitivity') {
+            let vd_count = video_count;
+            this.calculateMacroAll(item[i].perClassScore, macro_recall, vd_count);
+          }
+          if(item[i].name == 'Accuracy') macro_acc += item[i].microAverage;
+          if(macroMap.has(item[i].name) && item[i].name != 'Precision' && item[i].name != 'Sensitivity') {
             let num = macroMap.get(item[i].name);
             if(num !== undefined) {
               macroMap.set(item[i].name, num +item[i].macroAverage);
@@ -176,7 +179,36 @@ export class ScoresService {
     macroMap.forEach((value, key) => {
       newMap.set(key, value / video_count);
     });
+    let macro_precision_average = Array.from(macro_precision.values())
+                                  .reduce((acc, val) => acc + val[1]/val[0], 0) / macro_precision.size;
+
+    let macro_recall_average = Array.from(macro_recall.values())
+                                  .reduce((acc, val) => acc + val[1]/val[0], 0) / macro_recall.size;
+
+    newMap.set('Precision', macro_precision_average);
+    newMap.set('Sensitivity', macro_recall_average);
+
     return newMap;
+  }
+
+  //first index: video_count, second index: total value for each video
+  calculateMacroAll(perClassScores: Array<number>, map: Map<number, [number, number]>, video_count: number) {
+    for(let j=0; j < perClassScores.length; j++) {
+      if (map.has(j)) {
+        let num = map.get(j);
+        if(isNaN(perClassScores[j])) {
+          if(num) map.set(j, [num[0]-1, num[1]]);
+        } else {
+          if(num) map.set(j, [num[0], num[1] + perClassScores[j]]);
+        }
+      } else {
+        if(isNaN(perClassScores[j])) {
+          map.set(j, [video_count-1, 0]);
+        } else {
+          map.set(j, [video_count, perClassScores[j]]);
+        }
+      }
+    }
   }
 
   fillMetricTable(myScores: Array<Score>) {
@@ -195,7 +227,6 @@ export class ScoresService {
           this.scores.push(myScores[i]);
         }
       }
-      console.log('fill metric for one table');
       this.setScores(this.scores);
     } else {
       this.setScores(myScores);
@@ -281,19 +312,17 @@ export class ScoresService {
   updateConfusionMatrixFromArray(pred: Array<number>, gt: Array<number>) {
     this.initConfMat();
     this.computeConfMatFromArray(pred, gt, this.confusionMatrix);
-    this.overall_acc = Stats.overall_acc(gt, pred);
     this.micro_overall_acc = Stats.micro_overall_acc(gt, pred);
     let overlap_scores = Stats.calculateOverlap(gt, pred);
     this.updateScore(overlap_scores);
   }
 
-  updateConfusionMatrixFromArrayMultiVideos(pred: Array<number>, gt: Array<number>, i:number, video_count : number, isOneVideoUpdate:boolean) {
+  updateConfusionMatrixFromArrayMultiVideos(pred: Array<number>, gt: Array<number>, i:number, video_count : number) {
     this.initConfMat();
     this.computeConfMatFromArray(pred, gt, this.confusionMatrix);
-    this.overall_acc = Stats.overall_acc(gt, pred);
     this.micro_overall_acc  = Stats.micro_overall_acc(gt, pred);
     let overlap_scores = Stats.calculateOverlap(gt, pred);
-    this.calculateMultiScore(overlap_scores, i, video_count, isOneVideoUpdate);
+    this.calculateMultiScore(overlap_scores, i, video_count);
   }
 
   computeConfMat(
@@ -354,7 +383,7 @@ export class ScoresService {
     this.computeConfMat(boundary1, boundary2, confMat);
     let stat = new Stats(confMat);
     let overlap_score = [0.0]; //TODO:deneme
-    let scores = stat.updateScore(overlap_score, this.overall_acc, this.micro_overall_acc);
+    let scores = stat.updateScore(overlap_score, this.overall_acc, this.micro_overall_acc, this.UICtrlService.showNaN);
     scores.forEach((element) => {
       if (element.name == 'Dice' || element.name == 'IoU') {
         element.name = 'Boundary ' + element.name;
@@ -363,4 +392,5 @@ export class ScoresService {
     });
     this.setScores(this.scores);
   }
+
 }

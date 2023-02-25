@@ -9,6 +9,7 @@ export function colorScore(score: number | undefined) {
   }
 
   let percent = score > 0 ? score * 100 : 0;
+  percent = Number(percent.toFixed(1));
   let h = 359;
   let s = 60;
   let l = 0;

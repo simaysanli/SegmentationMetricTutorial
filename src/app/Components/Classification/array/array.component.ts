@@ -57,14 +57,7 @@ export class ArrayComponent implements OnInit {
           this.predictionArr = this.predictionArr.concat(repeated);
         }
         }
-      console.log('pickle file reading');
-
-      console.log('filling');
-      console.log(this.labelArr);
-      console.log(this.predictionArr);
       const uniqueCount = new Set(this.labelArr).size;
-      console.log('my calculation for class count');
-      console.log(uniqueCount);
       this.classService.setClasses([...Array(uniqueCount).keys()]);
       this.scoreService.initConfMat();
         this.scoreService.updateConfusionMatrixFromArray(
@@ -131,8 +124,6 @@ export class ArrayComponent implements OnInit {
     this.gtArray = this.gtArray.filter((value) => {
       return !Number.isNaN(value);
     });
-    console.log(this.predArray);
-    console.log(this.gtArray);
     this.classService.setClasses([...Array(max_value + 1).keys()]);
     this.scoreService.initConfMat();
 

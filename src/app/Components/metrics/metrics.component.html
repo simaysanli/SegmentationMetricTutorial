@@ -1,4 +1,4 @@
-<div class="metric-container" [ngSwitch]="classService.classes.length > 2 && !scoresService.isMulti">
+<div class="metric-container" [ngSwitch]="!scoresService.isMulti">
   <!--Multi-class table-->
   <table *ngSwitchCase="true">
     <!--Headers-->
@@ -93,8 +93,8 @@
     </tr>
   </table>
 </div>
-<div class="metric-container" [ngSwitch]=" classService.classes.length == 2 && !scoresService.isMulti">
-  <!--Binary classification table-->
+<!--<div class="metric-container" [ngSwitch]=" classService.classes.length == 2 && !scoresService.isMulti">
+  Binary classification table
   <table *ngSwitchCase="true">
     <tr>
       <th
@@ -135,7 +135,7 @@
       </td>
     </tr>
   </table>
-</div>
+</div>-->
 <div class="metric1-container" style="margin: 7px" [ngSwitch]="scoresService.isMulti && scoresService.isSelectedVideo">
   <!--Multi-class table for each video results-->
   <table *ngSwitchCase="true">
@@ -147,21 +147,24 @@
       >
         {{ 'Video Level Metrics' }}
       </th>
-      <th
+      <!--<th
               (mouseenter)="UICtrlService.activateTooltip($event, 'Score')"
               (mouseleave)="UICtrlService.deactivateTooltip()"
+              [ngClass]="{hide: !UICtrlService.showScores}"
       >
         {{ 'Score' }}
-      </th>
+      </th>-->
       <th
               (mouseenter)="UICtrlService.activateTooltip($event, 'Micro')"
               (mouseleave)="UICtrlService.deactivateTooltip()"
+              [ngClass]="{hide: !UICtrlService.showMicroMetrics}"
       >
         {{ 'Micro' }}
       </th>
       <th
               (mouseenter)="UICtrlService.activateTooltip($event, 'Macro')"
               (mouseleave)="UICtrlService.deactivateTooltip()"
+              [ngClass]="{hide: !UICtrlService.showMacroMetrics}"
       >
         {{ 'Macro' }}
       </th>
@@ -184,7 +187,7 @@
       >
         {{ score.name }}
       </th>
-      <td [style.background-color]="this.scoresService.colorScore(score.score)"
+      <!--<td [style.background-color]="this.scoresService.colorScore(score.score)"
           [ngClass]="{selected: isSelectedMetric(score.name, '')}"
           (contextmenu)="toggleScoreSetup($event, score, '')"
       >
@@ -195,16 +198,18 @@
                 score.name == "Kappa" ? 2 : 1
         )
         }}
-      </td>
+      </td>-->
       <td [style.background-color]="this.scoresService.colorScore(score.microAverage)"
           [ngClass]="{selected: isSelectedMetric(score.name, 'micro')}"
           (contextmenu)="toggleScoreSetup($event, score, 'micro')"
+          [ngClass]="{hide: !UICtrlService.showMicroMetrics}"
       >
         {{ formatScore(score.microAverage) }}
       </td>
       <td [style.background-color]="this.scoresService.colorScore(score.macroAverage)"
           [ngClass]="{selected: isSelectedMetric(score.name, 'macro')}"
           (contextmenu)="toggleScoreSetup($event, score, 'macro')"
+          [ngClass]="{hide: !UICtrlService.showMacroMetrics}"
       >
         {{ formatScore(score.macroAverage) }}
       </td>
@@ -232,26 +237,29 @@
       <!--Headers-->
       <tr>
         <th
-          (mouseenter)="UICtrlService.activateTooltip($event, 'Video Level Metrics')"
+          (mouseenter)="UICtrlService.activateTooltip($event, 'Dataset Level Metrics')"
           (mouseleave)="UICtrlService.deactivateTooltip()"
         >
           {{ 'Dataset Level Metrics' }}
         </th>
-        <th
+        <!--<th
           (mouseenter)="UICtrlService.activateTooltip($event, 'Score')"
           (mouseleave)="UICtrlService.deactivateTooltip()"
+          [ngClass]="{hide: !UICtrlService.showScores}"
         >
           {{ 'Score' }}
-        </th>
+        </th>-->
         <th
           (mouseenter)="UICtrlService.activateTooltip($event, 'Micro')"
           (mouseleave)="UICtrlService.deactivateTooltip()"
+          [ngClass]="{hide: !UICtrlService.showMicroMetrics}"
         >
           {{ 'Micro' }}
         </th>
         <th
           (mouseenter)="UICtrlService.activateTooltip($event, 'Macro')"
           (mouseleave)="UICtrlService.deactivateTooltip()"
+          [ngClass]="{hide: !UICtrlService.showMacroMetrics}"
         >
           {{ 'Macro' }}
         </th>
@@ -266,7 +274,7 @@
         >
           {{ score.name }}
         </th>
-        <td [style.background-color]="this.scoresService.colorScore(score.score)"
+        <!--<td [style.background-color]="this.scoresService.colorScore(score.score)"
             [ngClass]="{selected: isSelectedMetric(score.name, '')}"
             (contextmenu)="toggleScoreSetup($event, score, '')"
         >
@@ -277,16 +285,18 @@
             score.name == "Kappa" ? 2 : 1
           )
           }}
-        </td>
+        </td>-->
         <td [style.background-color]="this.scoresService.colorScore(score.microAverage)"
             [ngClass]="{selected: isSelectedMetric(score.name, 'micro')}"
             (contextmenu)="toggleScoreSetup($event, score, 'micro')"
+            [ngClass]="{hide: !UICtrlService.showMicroMetrics}"
         >
           {{ formatScore(score.microAverage) }}
         </td>
         <td [style.background-color]="this.scoresService.colorScore(score.macroAverage)"
             [ngClass]="{selected: isSelectedMetric(score.name, 'macro')}"
             (contextmenu)="toggleScoreSetup($event, score, 'macro')"
+            [ngClass]="{hide: !UICtrlService.showMacroMetrics}"
         >
           {{ formatScore(score.macroAverage) }}
         </td>

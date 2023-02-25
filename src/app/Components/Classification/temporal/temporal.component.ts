@@ -28,7 +28,7 @@ export class TemporalComponent implements OnInit {
   isOneVideoUpdate : boolean = false;
   final_pred_array: Map<number, Array<number>>;
   final_label_array: Map<number, Array<number>>;
-  nFrames: number = 3000;
+  nFrames: number = 99;
   framerate = 24;
   tool: string = 'grab';
   currentTime:number = 0;
@@ -37,6 +37,9 @@ export class TemporalComponent implements OnInit {
   videoPlayerCtx:HTMLVideoElement
   pred_step: number = 0;
   label_step: number = 0;
+  files: any = ['dominant_class_mispredicted.json', 'dominant_class_mostly_predicted.json', 'less_dominant_prediction.json',
+                'multi_phase_missing.json', 'one_missing_label.json', 'one_missing_prediction.json', 'underperformed_overlap.json'];
+
 
   constructor(
     public scoreService: ScoresService,
@@ -47,13 +50,13 @@ export class TemporalComponent implements OnInit {
   }
   ngOnInit(): void {}
   buildDefaultSetup(){
-    this.listPhasePrediction = new Array<Phase>(5);
-    this.listPhaseGt = new Array<Phase>(5);
+    this.listPhasePrediction = new Array<Phase>(3);
+    this.listPhaseGt = new Array<Phase>(3);
 
-    let n_samples = 5;
-    let width = 100 / n_samples;
+    let n_samples = 3;
+    let width = 99 / n_samples;
     let previous = null;
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       previous = {
         start: i * width,
         width: width,
@@ -68,7 +71,7 @@ export class TemporalComponent implements OnInit {
       }
     }
     previous = null;
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       previous = {
         start: i * width,
         width: width,
@@ -82,7 +85,7 @@ export class TemporalComponent implements OnInit {
         this.listPhaseGt[i - 1].next = previous;
       }
     }
-    this.classService.setClasses([0, 1, 2, 3, 4]);
+    this.classService.setClasses([0, 1, 2]);
     this.classService.setCurrentClass(0);
 
     this.scoreService.initConfMat();
@@ -102,89 +105,105 @@ export class TemporalComponent implements OnInit {
     this.tool = tool;
   }
 
-  loadSelectedFile(event: any) {
-    this.selectedFile = event.target.files[0];
-    const fileReader = new FileReader();
+  loadSelectedFile(file: any) {
     const dictionary: { [key: string]: number } = {
       "Preparation": 0, "CalotTriangleDissection": 1, "ClippingCutting": 2, "GallbladderDissection": 3,
       "GallbladderPackaging": 4, "CleaningCoagulation": 5, "GallbladderRetraction": 6
     };
-    fileReader.readAsText(this.selectedFile, "UTF-8");
-    fileReader.onload = () => {
-      if (typeof fileReader.result === "string") {
-        const file = JSON.parse(fileReader.result);
-        this.video_count = file.length;
-        this.isNew = false;
-        if (this.video_count > 1) { //Multiple Videos
-          this.isVideoUploaded = true;
-          this.buildDefaultSetup();
-          this.scoreService.isSelectedVideo = false;
-          this.scoreService.isMulti = true;
-          this.final_label_array = new Map<number, Array<number>>();
-          this.final_pred_array = new Map<number, Array<number>>();
-          for(let i=0; i<this.video_count; i++) {
-            const data = file[i]['label_segments'];
-            const pred_data = file[i]['pred_segments'];
-            this.labelArr = [];
-            this.predictionArr = [];
-            for (let i = 0; i < data.length; i++) {
-              const value = data[i]['label'];
-              let repeated: Array<number> = new Array(data[i]['value']).fill(dictionary[value]).flat();
-              this.labelArr = this.labelArr.concat(repeated);
-            }
-            this.final_label_array.set(i, this.labelArr);
-            for (let j = 0; j < pred_data.length; j++) {
-              const value = pred_data[j]['label'];
-              let repeated: Array<number> = new Array(pred_data[j]['value']).fill(dictionary[value]).flat();
-              this.predictionArr = this.predictionArr.concat(repeated);
-            }
-            this.final_pred_array.set(i, this.predictionArr);
-            const uniquePredCount = new Set(this.predictionArr).size;
-            const uniqueLabelCount = new Set(this.labelArr).size;
-            const uniqueCount = Math.max(uniquePredCount, uniqueLabelCount);
+    this.video_count = file.length;
+    this.isNew = false; // disabled setup
+    if (this.video_count > 1) { //Multiple Videos
+      this.scoreService.final_multi_result = new Map();
+      this.isVideoUploaded = true;
+      this.scoreService.videoMap = new Map();
+      this.scoreService.isSelectedVideo = true;
+      this.scoreService.selectedVideo = 0;
+      this.scoreService.isMulti = true;
+      this.scoreService.videos = [];
+      let first_pred_arr = new Array<number>();
+      let first_label_arr = new Array<number>();
+      this.final_label_array = new Map<number, Array<number>>();
+      this.final_pred_array = new Map<number, Array<number>>();
+      for(let i=0; i<this.video_count; i++) {
+        const data = file[i]['label_segments'];
+        const pred_data = file[i]['pred_segments'];
+        this.labelArr = [];
+        this.predictionArr = [];
+        this.scoreService.videoMap.set(i, data.length);
+        for (let i = 0; i < data.length; i++) {
+          const value = data[i]['label'];
+          let repeated: Array<number> = new Array(data[i]['value']).fill(dictionary[value]).flat();
+          this.labelArr = this.labelArr.concat(repeated);
+        }
+        if(i == 0) first_label_arr = this.labelArr;
+        this.final_label_array.set(i, this.labelArr);
+        for (let j = 0; j < pred_data.length; j++) {
+          const value = pred_data[j]['label'];
+          let repeated: Array<number> = new Array(pred_data[j]['value']).fill(dictionary[value]).flat();
+          this.predictionArr = this.predictionArr.concat(repeated);
+        }
+        if(i == 0) first_pred_arr = this.predictionArr;
+        this.fillDefaultData(this.scoreService.selectedVideo, first_pred_arr, first_label_arr);
+        this.final_pred_array.set(i, this.predictionArr);
+        const uniquePredCount = new Set(this.predictionArr).size;
+        const uniqueLabelCount = new Set(this.labelArr).size;
+        const uniqueCount = Math.max(uniquePredCount, uniqueLabelCount);
             this.classService.setClasses([...Array(uniqueCount).keys()]);
             this.scoreService.initConfMat();
             this.scoreService.updateConfusionMatrixFromArrayMultiVideos(
               this.predictionArr,
               this.labelArr,
               i,
-              this.video_count, this.isOneVideoUpdate
+              this.video_count
             );
-          }
-        }
-        if (this.video_count == 1) { // Single Videos
-          this.scoreService.isMulti = false;
-          const data = file[0]['label_segments'];
-          const pred_data = file[0]['pred_segments'];
-          this.labelArr = [];
-          this.predictionArr = [];
-          for (let i = 0; i < data.length; i++) {
-            const value = data[i]['label'];
-            let repeated: Array<number> = new Array(data[i]['value']).fill(dictionary[value]).flat();
-            this.labelArr = this.labelArr.concat(repeated);
-          }
-          for (let j = 0; j < pred_data.length; j++) {
-            const value = pred_data[j]['label'];
-            let repeated: Array<number> = new Array(pred_data[j]['value']).fill(dictionary[value]).flat();
-            this.predictionArr = this.predictionArr.concat(repeated);
-          }
-
-          const uniquePredCount = new Set(this.predictionArr).size;
-          const uniqueLabelCount = new Set(this.labelArr).size;
-          const uniqueCount = Math.max(uniquePredCount, uniqueLabelCount)
-          this.classService.setClasses([...Array(uniqueCount).keys()]);
-          this.scoreService.initConfMat();
-          this.scoreService.updateConfusionMatrixFromArray(
-            this.predictionArr,
-            this.labelArr
-          );
-          this.nFrames = this.predictionArr.length;
-          this.buildPhaseSetup(this.predictionArr, this.labelArr);
-        }
       }
     }
-    fileReader.onerror = (error) => {
-      console.log(error);
+    if (this.video_count == 1) { // Single Videos
+      this.scoreService.isMulti = false;
+      this.isVideoUploaded = true;
+      this.scoreService.isSelectedVideo = false;
+      this.scoreService.isSelectedOne = false;
+      const data = file[0]['label_segments'];
+      const pred_data = file[0]['pred_segments'];
+      this.labelArr = [];
+      this.predictionArr = [];
+      for (let i = 0; i < data.length; i++) {
+        const value = data[i]['label'];
+        let repeated: Array<number> = new Array(data[i]['value']).fill(dictionary[value]).flat();
+        this.labelArr = this.labelArr.concat(repeated);
+      }
+      for (let j = 0; j < pred_data.length; j++) {
+        const value = pred_data[j]['label'];
+        let repeated: Array<number> = new Array(pred_data[j]['value']).fill(dictionary[value]).flat();
+        this.predictionArr = this.predictionArr.concat(repeated);
+      }
+      const uniquePredCount = new Set(this.predictionArr).size;
+      const uniqueLabelCount = new Set(this.labelArr).size;
+      const uniqueCount = Math.max(uniquePredCount, uniqueLabelCount)
+      //this.classService.setClasses([...Array(uniqueCount).keys()]);
+      this.classService.setClasses([0, 1, 2, 3, 4, 5, 6]);
+      this.scoreService.initConfMat();
+      this.scoreService.updateConfusionMatrixFromArray(
+          this.predictionArr,
+          this.labelArr
+      );
+      this.nFrames = this.predictionArr.length;
+      this.buildPhaseSetup(this.predictionArr, this.labelArr);
+    }
+  }
+
+  selectFile(event: any) {
+    this.selectedFile = event.target.files[0];
+    const fileReader = new FileReader();
+    fileReader.readAsText(this.selectedFile, "UTF-8");
+    fileReader.onload = () => {
+      if (typeof fileReader.result === "string") {
+        const file = JSON.parse(fileReader.result);
+        this.loadSelectedFile(file);
+      }
+      fileReader.onerror = (error) => {
+        console.log(error);
+      }
     }
   }
 
@@ -210,7 +229,7 @@ export class TemporalComponent implements OnInit {
     csv += 'label,prediction\n';
     let length = Math.max(data1.length, data2.length);
     for(let i = 0; i < length; i++) {
-      csv += (data1[i] !== undefined ? data1[i] : '') + ',' + (data2[i] !== undefined ? data2[i] : '') + '\n';
+      csv += (data1[i]) + ',' + (data2[i]) + '\n';
     }
     return csv;
   }
@@ -235,8 +254,7 @@ export class TemporalComponent implements OnInit {
 
   //dropdown list handler
   handleVideoSelection(event: any) {
-    this.scoreService.isSelectedVideo = false;
-    this.isOneVideoUpdate = true;
+    this.scoreService.isSelectedVideo = true;
     let video_number = event;
     let video_score = new Array<Score>();
     let item = this.scoreService.final_multi_result.get(video_number) || [];
@@ -250,17 +268,39 @@ export class TemporalComponent implements OnInit {
       };
       video_score.push(new Score(args));
     }
-    this.scoreService.isSelectedVideo = true;
     let prediction = this.final_pred_array.get(video_number) || [];
     let groundtruth = this.final_label_array.get(video_number) || [];
+    this.nFrames = prediction.length;
+    this.segment_arr_label = groundtruth;
+    this.segment_arr_pred = prediction;
     this.scoreService.selectedVideo = video_number;
     this.scoreService.fillOneMetricTable(video_score);
     this.buildMultiPhaseSetup(prediction, groundtruth, video_number);
   }
 
+  fillDefaultData(video_number: number, prediction: Array<number>, groundtruth: Array<number>) {
+    this.nFrames = prediction.length;
+    let video_score = new Array<Score>();
+    let item = this.scoreService.final_multi_result.get(video_number) || [];
+    for(let i=0; i<item.length; i++) {
+      let args = {
+        name: item[i].name,
+        score: item[i].score,
+        perClassScore: item[i].perClassScore,
+        microAverage: item[i].microAverage,
+        macroAverage: item[i].macroAverage,
+      };
+      video_score.push(new Score(args));
+    }
+    this.scoreService.fillOneMetricTable(video_score);
+    this.segment_arr_pred = prediction;
+    this.segment_arr_label = groundtruth;
+    this.buildMultiPhaseSetup(prediction, groundtruth, video_number);
+  }
+
   buildPhaseSetup(prediction: Array<number>, label: Array<number>){
-    this.listPhasePrediction = new Array<Phase>(7);
-    this.listPhaseGt = new Array<Phase>(7);
+    this.listPhasePrediction = new Array<Phase>(new Set(prediction).size);
+    this.listPhaseGt = new Array<Phase>(new Set(label).size);
 
     var prediction_segments = this.segmentArrayPhase(prediction);
     var label_segments = this.segmentArrayPhase(label);
@@ -309,7 +349,6 @@ export class TemporalComponent implements OnInit {
     const uniqueLabelCount = new Set(this.labelArr).size;
     const uniqueCount = Math.max(uniquePredCount, uniqueLabelCount)
     this.classService.setClasses([...Array(uniqueCount).keys()]);
-    //this.classService.setClasses([0, 1, 2, 3, 4, 5, 6]);
     this.classService.setCurrentClass(0);
 
     this.scoreService.initConfMat();
@@ -318,8 +357,8 @@ export class TemporalComponent implements OnInit {
   }
 
   buildMultiPhaseSetup(prediction: Array<number>, label: Array<number>, video_id:number){
-    this.listPhasePrediction = new Array<Phase>(7);
-    this.listPhaseGt = new Array<Phase>(7);
+    this.listPhasePrediction = new Array<Phase>(new Set(prediction).size);
+    this.listPhaseGt = new Array<Phase>(new Set(label).size);
     var prediction_segments = this.segmentArrayPhase(prediction);
     var label_segments = this.segmentArrayPhase(label);
     let n_pred_samples = prediction_segments.length;
@@ -367,7 +406,6 @@ export class TemporalComponent implements OnInit {
     const uniqueLabelCount = new Set(this.labelArr).size;
     const uniqueCount = Math.max(uniquePredCount, uniqueLabelCount)
     this.classService.setClasses([...Array(uniqueCount).keys()]);
-    //this.classService.setClasses([0, 1, 2, 3, 4, 5, 6]); //TODO: will be expanded
     this.classService.setCurrentClass(0);
 
     //this.scoreService.initConfMat();
@@ -389,6 +427,7 @@ export class TemporalComponent implements OnInit {
           var offset = (100 * (event.clientX - rect.left)) / width;
         }
         let newWidth = offset - activePhase.start;
+        newWidth = Math.floor(newWidth);
 
         let newPhase: Phase = {
           start: offset,
@@ -420,9 +459,8 @@ export class TemporalComponent implements OnInit {
         }
       }
     }
-
-    if(this.scoreService.isSelectedVideo) {
-      console.log('in phase action');
+    //this.scoreService.isSelectedVideo
+    if(this.scoreService.isMulti) {
       this.updateMultiVideoScore(this.scoreService.selectedVideo);
     } else {
       this.updateScore();
@@ -445,7 +483,6 @@ export class TemporalComponent implements OnInit {
         else{
           var offset = (100 * event.movementX) / width;
         }
-
         if (
           this.activePhase.width + offset > 0 &&
           this.activePhase.next.width - offset > 0
@@ -455,7 +492,12 @@ export class TemporalComponent implements OnInit {
           this.activePhase.next.width -= offset;
         }
       }
-      //this.updateScore();
+      if(this.scoreService.isMulti) {
+        this.updateMultiVideoScore(this.scoreService.selectedVideo);
+        this.scoreService.isOneUpdate = true; //update video level table
+      } else {
+        this.updateScore();
+      }
     }
   }
   startDragging(event: MouseEvent | TouchEvent, phase: Phase) {
@@ -517,25 +559,133 @@ export class TemporalComponent implements OnInit {
           }
         }
       }
-
       this.scoreService.updateConfusionMatrixFromArray(predicted, groundtruth);
     }
   }
 
-  //one video updated
   updateMultiVideoScore(video_id : number) {
+    if (this.classService.classes) {
+      this.updateListPhase();
+
+      var predicted = new Array<number>(this.nFrames);
+      var groundtruth = new Array<number>(this.nFrames);
+
+      var phasePredicted = this.listPhasePrediction[0];
+      var phaseGt = this.listPhaseGt[0];
+      let pred_label = phasePredicted.label;
+      let gt_label = phaseGt.label;
+      let pred_step = phasePredicted.width;
+      let gt_step = phaseGt.width;
+      let j = 0;
+      let gt = 0;
+
+      for (let i = 0; i < this.nFrames; i++) {
+        predicted[i] = pred_label;
+        j += 1;
+
+        if(phasePredicted.next && j >= pred_step) {
+          phasePredicted = phasePredicted.next;
+          pred_label = phasePredicted.label;
+          pred_step = phasePredicted.width;
+          j = 0;
+        }
+      }
+      for (let i = 0; i < this.nFrames; i++) {
+        groundtruth[i] = gt_label;
+        gt += 1;
+
+        if(phaseGt.next && gt >= gt_step) {
+          phaseGt = phaseGt.next;
+          gt_label = phaseGt.label;
+          gt_step = phaseGt.width;
+          gt = 0;
+        }
+      }
+      this.segment_arr_pred = [];
+      this.segment_arr_label = [];
+      this.segment_arr_pred = predicted;
+      this.segment_arr_label = groundtruth;
+
+      this.scoreService.updateConfusionMatrixFromArrayMultiVideos(
+          predicted,
+          groundtruth,
+          video_id,
+          this.video_count
+      );
+    }
+  }
+
+  updateScore() {
+    if (this.classService.classes) {
+      this.updateListPhase();
+
+      var predicted = new Array<number>(this.nFrames);
+      var groundtruth = new Array<number>(this.nFrames);
+
+      var phasePredicted = this.listPhasePrediction[0];
+      var phaseGt = this.listPhaseGt[0];
+      let pred_label = phasePredicted.label;
+      let gt_label = phaseGt.label;
+      let pred_step = phasePredicted.width;
+      let gt_step = phaseGt.width;
+      let j = 0;
+      let gt = 0;
+
+      for (let i = 0; i < this.nFrames; i++) {
+        predicted[i] = pred_label;
+        j += 1;
+
+        if(phasePredicted.next && j >= pred_step) {
+          phasePredicted = phasePredicted.next;
+          pred_label = phasePredicted.label;
+          pred_step = phasePredicted.width;
+          j = 0;
+        }
+      }
+      for (let i = 0; i < this.nFrames; i++) {
+        groundtruth[i] = gt_label;
+        gt += 1;
+
+        if(phaseGt.next && gt >= gt_step) {
+          phaseGt = phaseGt.next;
+          gt_label = phaseGt.label;
+          gt_step = phaseGt.width;
+          gt = 0;
+        }
+      }
+      this.segment_arr_pred = [];
+      this.segment_arr_label = [];
+      this.segment_arr_pred = predicted;
+      this.segment_arr_label = groundtruth;
+
+      this.scoreService.updateConfusionMatrixFromArray(this.segment_arr_pred, this.segment_arr_label);
+    }
+  }
+
+   arraysEqual(a: any[], b: any[]) {
+    if (a.length !== b.length) {
+      return false;
+    }
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  //one video updated
+  updateMultiVideoScoreOld(video_id : number) {
     if (this.classService.classes) {
       this.updateListPhase();
 
       this.segment_arr_pred = [];
       this.segment_arr_label = [];
 
-
       var phasePredicted = this.listPhasePrediction[0];
       var phaseGt = this.listPhaseGt[0];
-
       for(let i=0; i<this.listPhasePrediction.length; i++) {
-        let repeated: Array<number> = new Array(Math.floor(phasePredicted.width)).fill(Math.floor(phasePredicted.label)).flat();
+        let repeated: Array<number> = new Array(Math.round(phasePredicted.width)).fill(phasePredicted.label).flat();
         this.segment_arr_pred = this.segment_arr_pred.concat(repeated);
         if(phasePredicted.next) {
           phasePredicted = phasePredicted.next;
@@ -549,18 +699,18 @@ export class TemporalComponent implements OnInit {
           phaseGt = phaseGt.next;
         }
       }
+      this.checkArray(this.segment_arr_pred, this.segment_arr_label, this.nFrames);
       this.scoreService.updateConfusionMatrixFromArrayMultiVideos(
           this.segment_arr_pred,
           this.segment_arr_label,
           video_id,
-          this.video_count,
-          this.isOneVideoUpdate
+          this.video_count
       );
 
     }
   }
 
-  updateScore() {
+  updateScoreUsedOld() {
 
     if (this.classService.classes) {
       this.updateListPhase();
@@ -571,10 +721,8 @@ export class TemporalComponent implements OnInit {
       var phasePredicted = this.listPhasePrediction[0];
       var phaseGt = this.listPhaseGt[0];
 
-      console.log('after updated');
-      console.log(this.listPhasePrediction);
       for(let i=0; i<this.listPhasePrediction.length; i++) {
-        let repeated: Array<number> = new Array(Math.floor(phasePredicted.width)).fill(Math.floor(phasePredicted.label)).flat();
+        let repeated: Array<number> = new Array(Math.floor(phasePredicted.width)).fill(phasePredicted.label).flat();
         this.segment_arr_pred = this.segment_arr_pred.concat(repeated);
         if(phasePredicted.next) {
           phasePredicted = phasePredicted.next;
@@ -582,12 +730,14 @@ export class TemporalComponent implements OnInit {
       }
 
       for(let i=0; i<this.listPhaseGt.length; i++) {
-        let repeated: Array<number> = new Array(Math.floor(phaseGt.width)).fill(Math.floor(phaseGt.label)).flat();
+        let repeated: Array<number> = new Array(Math.floor(phaseGt.width)).fill(phaseGt.label).flat();
         this.segment_arr_label = this.segment_arr_label.concat(repeated);
         if(phaseGt.next) {
           phaseGt = phaseGt.next;
         }
       }
+      this.checkArray(this.segment_arr_pred, this.segment_arr_label, this.nFrames);
+
       this.scoreService.updateConfusionMatrixFromArray(this.segment_arr_pred, this.segment_arr_label);
     }
   }
@@ -600,6 +750,31 @@ export class TemporalComponent implements OnInit {
       labels.push(...Array(times).fill(label));
     }
     return labels;
+  }
+
+  checkArray(predArr : number[], labelArr: number[], nFrame: number) {
+    if (predArr.length != nFrame || labelArr.length != nFrame) {
+        let pred_diff = predArr.length - nFrame;
+        let label_diff = labelArr.length - nFrame;
+        if(pred_diff < 0) {
+          let diff = nFrame - predArr.length;
+          const class_type = predArr[predArr.length-1];
+          let repeated: Array<number> = new Array(diff).fill(class_type).flat();
+          this.segment_arr_pred = predArr.concat(repeated);
+        }
+        if(pred_diff > 0) {
+          this.segment_arr_pred.splice(-pred_diff, pred_diff);
+        }
+        if(label_diff < 0) {
+          let diff = nFrame - labelArr.length;
+          const class_type = labelArr[labelArr.length-1];
+          let repeated: Array<number> = new Array(diff).fill(class_type).flat();
+          this.segment_arr_label = labelArr.concat(repeated);
+        }
+        if(label_diff > 0) {
+          this.segment_arr_label.splice(-label_diff, label_diff);
+        }
+    }
   }
 
   numberOnly(event: KeyboardEvent): boolean {
@@ -627,26 +802,28 @@ export class TemporalComponent implements OnInit {
     this.currentTime = 100*this.videoPlayerCtx.currentTime / this.videoPlayerCtx.duration
 
   }
-  onFileSelected() {
-    const inputNode: any = document.querySelector('#file');
-    if (typeof (FileReader) !== 'undefined') {
-      const reader = new FileReader();
+  onFileSelected(event: any) {
+    const path = '../../../assets/edge_case_files/' + event.value;
+    const reader = new FileReader();
 
-      reader.onload = (e: any) => {
-        this.localUrl = e.target.result;
-      };
-
-      reader.readAsArrayBuffer(inputNode.files[0]);
-    }
+    fetch(path)
+        .then(response => response.blob())
+        .then(blob => {
+              reader.readAsText(blob);
+              reader.onload = () => {
+                if (typeof reader.result === "string") {
+                  const file = JSON.parse(reader.result);
+                  this.loadSelectedFile(file);
+                }
+              }
+            }
+        )
+        .catch(error => console.log(error));
   }
+
   updateFramerate(){
     this.nFrames = Math.round(this.videoPlayerCtx.duration * this.framerate)
     this.updateScore()
-  }
-
-  calculateMultiScore(file : object) {
-
-
   }
 
 }

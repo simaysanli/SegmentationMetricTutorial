@@ -9,8 +9,8 @@ import { WelcomeComponent } from './Components/welcome/welcome.component';
 
 
 const routes: Routes = [
-  { path: '', redirectTo: 'welcome', pathMatch:'full'},
-  {path:'welcome', component:WelcomeComponent},
+  { path: '', redirectTo: 'main/classification', pathMatch:'full'},
+  //{path:'welcome', component:WelcomeComponent},
   {path:'main', component:MainPageComponent, children:[
     {path:'classification', component:ClassificationPageComponent, children:[
       {path:'temporal', component:TemporalComponent},
@@ -18,7 +18,7 @@ const routes: Routes = [
       {path:'**', component:ArrayComponent}
     ]},
     //{path:'segmentation', component:DrawingComponent},
-    {path:'**', component:DrawingComponent},
+    //{path:'**', component:DrawingComponent},
 
   ]},
   {path:'temporal', component:TemporalComponent}

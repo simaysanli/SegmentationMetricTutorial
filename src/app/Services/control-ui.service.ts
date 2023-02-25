@@ -22,6 +22,7 @@ export class ControlUIService {
   showPerClassMetrics: boolean = false;
   showMicroMetrics: boolean = true;
   showMacroMetrics: boolean = true;
+  showNaN: boolean = false;
   showReference: boolean = true;
   showOverlayReference: boolean = true;
 
@@ -78,6 +79,9 @@ export class ControlUIService {
   }
   toggleMacroMetrics() {
     this.showMacroMetrics = !this.showMacroMetrics;
+  }
+  toggleNaN() {
+    this.showNaN = !this.showNaN;
   }
   toggleScores() {
     this.showScores = !this.showScores;
