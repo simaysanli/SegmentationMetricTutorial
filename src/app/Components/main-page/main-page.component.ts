@@ -1,7 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ControlUIService } from 'src/app/Services/control-ui.service';
 import { ScoresService } from 'src/app/Services/scores.service';
-import { DrawingComponent } from '../Segmentation/drawing.component';
 
 @Component({
   selector: 'app-main-page',

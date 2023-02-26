@@ -2,10 +2,8 @@ import { Injectable } from '@angular/core';
 import { Score, Stats } from '../statistic';
 import { ClassesService } from './classes.service';
 import { ControlUIService } from './control-ui.service';
-import { DrawService } from './draw.service';
 import { colorScore } from '../utils';
-import {min} from "rxjs";
-import {TemporalComponent} from "../Components/Classification/temporal/temporal.component";
+
 export interface SelectedScore {
   score: Score;
   description: string;
@@ -34,7 +32,6 @@ export class ScoresService {
   constructor(
     private classService: ClassesService,
     private UICtrlService: ControlUIService,
-    private drawService: DrawService,
   ) {
   }
 
@@ -352,45 +349,6 @@ export class ScoresService {
         confMat[0][0] += 1;
       }
     }
-  }
-
-  computeBoundaryIoU(
-    img1: Uint8ClampedArray,
-    img2: Uint8ClampedArray,
-    width: number,
-    height: number,
-    boundary: number = 3
-  ) {
-    let n_classes = this.classService.classes.length;
-    let confMat = new Array(n_classes);
-    for (let i = 0; i < n_classes; i++) {
-      confMat[i] = new Array(n_classes).fill(0);
-    }
-
-    let kernel = this.drawService.getKernel(boundary);
-    let boundary1 = this.drawService.convertImgToBoundaryRegion(
-      img1,
-      kernel,
-      width,
-      height
-    );
-    let boundary2 = this.drawService.convertImgToBoundaryRegion(
-      img2,
-      kernel,
-      width,
-      height
-    );
-    this.computeConfMat(boundary1, boundary2, confMat);
-    let stat = new Stats(confMat);
-    let overlap_score = [0.0]; //TODO:deneme
-    let scores = stat.updateScore(overlap_score, this.overall_acc, this.micro_overall_acc, this.UICtrlService.showNaN);
-    scores.forEach((element) => {
-      if (element.name == 'Dice' || element.name == 'IoU') {
-        element.name = 'Boundary ' + element.name;
-        this.scores.push(element);
-      }
-    });
-    this.setScores(this.scores);
   }
 
 }
