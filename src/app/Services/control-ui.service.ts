@@ -14,9 +14,6 @@ export class ControlUIService {
   showEdit: boolean = false;
 
   showMetrics: boolean = true;
-
-  showBarPlot: boolean = true;
-
   performanceMode: boolean = false;
   showScores: boolean = false;
   showPerClassMetrics: boolean = false;
@@ -88,9 +85,6 @@ export class ControlUIService {
   }
   toggleReferenceDisplay() {
     this.showReference = !this.showReference;
-  }
-  toggleBarPlot(){
-    this.showBarPlot = !this.showBarPlot;
   }
   toggleOverlayReference() {
     this.showOverlayReference = !this.showOverlayReference;

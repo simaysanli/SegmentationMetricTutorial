@@ -105,28 +105,6 @@
         Metrics
       </mat-slide-toggle>
 
-      <!--<mat-slide-toggle
-        class="example-margin"
-        [checked]="UICtrlService.showBarPlot"
-        (change)="UICtrlService.toggleBarPlot()"
-        matTooltip="Show the bar plot of selected metrics"
-        [matTooltipPosition]="'right'"
-      >
-        Bar plots
-      </mat-slide-toggle>-->
-
-      <!--<mat-checkbox
-        *ngIf="UICtrlService.showMetrics"
-        color="accent"
-        class="example-margin"
-        [checked]="UICtrlService.ignoreFirstClassMetric"
-        (change)="UICtrlService.toggleIgnoreFirstClassMetric()"
-        matTooltip="Ignore the first class in the computation of the micro and macro scores"
-        [matTooltipPosition]="'right'"
-      >
-        Ignore first class
-      </mat-checkbox>-->
-
       <mat-checkbox
         *ngIf="UICtrlService.showMetrics && UICtrlService.isSegmentation"
         color="warn"
@@ -229,9 +207,6 @@
     mode="side"
     position="end"
   >
-  <app-bar-plot
-  *ngIf="UICtrlService.showBarPlot"
-  ></app-bar-plot>
   <mat-divider></mat-divider>
 
     <app-metrics

@@ -29,7 +29,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { TemporalComponent } from './Components/Classification/temporal/temporal.component';
-import { BarPlotComponent } from './Components/bar-plot/bar-plot.component';
 import { ClassificationPageComponent } from './Components/Classification/classification-page/classification-page.component';
 import {MatInputModule} from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
@@ -47,7 +46,6 @@ import { ArrayComponent } from './Components/Classification/array/array.componen
     WelcomeComponent,
     MainPageComponent,
     TemporalComponent,
-    BarPlotComponent,
     ClassificationPageComponent,
     ArrayComponent
   ],
