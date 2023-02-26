@@ -6,9 +6,7 @@ import {MatButtonModule} from '@angular/material/button';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import {MatIconModule} from '@angular/material/icon';
-//import { DrawingComponent } from './Components/Segmentation/drawing.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { TooltipsComponent } from './Components/tooltips/tooltips.component';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import { ConfMatComponent } from './Components/conf-mat/conf-mat.component';
 import { MetricsComponent } from './Components/metrics/metrics.component';
@@ -38,8 +36,6 @@ import { ArrayComponent } from './Components/Classification/array/array.componen
 @NgModule({
   declarations: [
     AppComponent,
-    //DrawingComponent,
-    TooltipsComponent,
     ConfMatComponent,
     MetricsComponent,
     PresetsComponent,
