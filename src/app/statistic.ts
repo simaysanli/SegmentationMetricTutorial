@@ -238,7 +238,12 @@ export class Stats {
 
           if(key == 'Precision' || key == 'Sensitivity' || key == 'F1') {
             macroAvg = Stats.getMacroAverage(avgValues)
-            microAvg = weightedValues.reduce((a, b) => a+b) / this.S
+            microAvg = weightedValues.reduce((acc, val) => {
+              if (!isNaN(val)) {
+                acc += val;
+              }
+              return acc;
+            }, 0) / this.S
           }
 
           let args = {

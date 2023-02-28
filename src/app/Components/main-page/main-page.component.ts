@@ -8,15 +8,15 @@ import { ScoresService } from 'src/app/Services/scores.service';
   styleUrls: ['./main-page.component.scss']
 })
 export class MainPageComponent implements OnInit {
-  constructor(public scoresService:ScoresService, public UICtrlService:ControlUIService){}
+  constructor(public scoresService: ScoresService, public UICtrlService: ControlUIService){}
 
 
-  toggleVisibilityScore(index:number){
+  toggleVisibilityScore(index: number) {
     this.scoresService.visibleScores[index] = !this.scoresService.visibleScores[index]
   }
 
-  changeOpacity(value:number|null){
-    if(value){
+  changeOpacity(value: number | null) {
+    if (value) {
       this.UICtrlService.overlayOpacity = value;
     }
   }
