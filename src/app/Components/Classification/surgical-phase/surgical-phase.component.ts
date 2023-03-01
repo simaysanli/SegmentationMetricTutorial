@@ -6,11 +6,11 @@ import {Score, Stats} from 'src/app/statistic';
 import { Phase } from './phase';
 
 @Component({
-  selector: 'app-temporal',
-  templateUrl: './temporal.component.html',
-  styleUrls: ['./temporal.component.scss'],
+  selector: 'app-surgical-phase',
+  templateUrl: './surgical-phase.component.html',
+  styleUrls: ['./surgical-phase.component.scss'],
 })
-export class TemporalComponent implements OnInit {
+export class SurgicalPhaseComponent implements OnInit {
 
   isDragging: boolean = false;
   listPhasePrediction: Array<Phase>;

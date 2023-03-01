@@ -26,7 +26,7 @@ import {MatCardModule} from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-import { TemporalComponent } from './Components/Classification/temporal/temporal.component';
+import { SurgicalPhaseComponent } from './Components/Classification/surgical-phase/surgical-phase.component';
 import { ClassificationPageComponent } from './Components/Classification/classification-page/classification-page.component';
 import {MatInputModule} from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
@@ -41,7 +41,7 @@ import { ArrayComponent } from './Components/Classification/array/array.componen
     PresetsComponent,
     WelcomeComponent,
     MainPageComponent,
-    TemporalComponent,
+    SurgicalPhaseComponent,
     ClassificationPageComponent,
     ArrayComponent
   ],
