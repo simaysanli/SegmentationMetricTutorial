@@ -27,8 +27,6 @@ export class ControlUIService {
   ignoreFirstClassMetric:boolean = true
 
   currentPreset:number=0;
-  currentSubPreset?:number=0;
-  boundarySize:number=5;
   overlayOpacity:number = 80;
 
   isSegmentation=true;
@@ -52,7 +50,6 @@ export class ControlUIService {
     this.updateInference = fn
 
   }
-
 
   toggleCM() {
     this.showConfMat = !this.showConfMat;
@@ -89,23 +86,8 @@ export class ControlUIService {
   toggleOverlayReference() {
     this.showOverlayReference = !this.showOverlayReference;
   }
-  toggleTooltipVisibility(){
-    this.tooltipsActivated = !this.tooltipsActivated
-  }
   toggleBoundaryMetric(){
     this.showBoundaryMetric = !this.showBoundaryMetric
     this.updateInference()
-  }
-  toggleIgnoreFirstClassMetric(){
-    this.ignoreFirstClassMetric = !this.ignoreFirstClassMetric
-    this.updateInference()
-  }
-
-  changeCurrentPreset(preset:number){
-    this.currentPreset = preset
-    this.currentSubPreset = undefined
-  }
-  changeCurrentSubPreset(SubPreset:number){
-    this.currentSubPreset = SubPreset
   }
 }

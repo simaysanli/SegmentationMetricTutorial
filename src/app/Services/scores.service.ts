@@ -27,6 +27,9 @@ export class ScoresService {
   visibleScores: Array<boolean>;
   confusionMatrix: Array<Array<number>>;
   stateCMatrix: Array<Array<string>>;
+  oneOverlapScore: Array<number> = [];
+  final_pred_array: Map<number, Array<number>>;
+  final_label_array: Map<number, Array<number>>;
   selectedScores: Array<SelectedScore> = new Array<SelectedScore>();
 
   constructor(
@@ -79,6 +82,16 @@ export class ScoresService {
       this.setScores(newScores);
     }
   }
+  onToggleChange() {
+      if(!this.isMulti) {
+        this.updateScore(this.oneOverlapScore);
+      } else {
+        let pred = this.final_pred_array.get(this.selectedVideo) || [];
+        let gt = this.final_label_array.get(this.selectedVideo) || [];
+        this.isOneUpdate = true;
+        this.updateConfusionMatrixFromArrayMultiVideos(pred, gt, this.selectedVideo, this.final_multi_result.size);
+      }
+  }
 
   calculateMultiScore(overlap_score: number[], i: number, video_count : number) {
     for(let i=0; i<video_count; i++) {
@@ -88,7 +101,6 @@ export class ScoresService {
         this.confusionMatrix,
         this.UICtrlService.ignoreFirstClassMetric
     );
-
     let newScores = statsComputer.updateScore(overlap_score, this.overall_acc, this.micro_overall_acc, this.UICtrlService.showNaN);
     this.final_multi_result.set(i, newScores);
 
@@ -288,12 +300,6 @@ export class ScoresService {
       this.stateCMatrix.push(row);
     }
   }
-  updateConfusionMatrix(img1: Uint8ClampedArray, img2: Uint8ClampedArray) {
-    this.initConfMat();
-    this.computeConfMat(img1, img2, this.confusionMatrix);
-    let overlap_score = [0.0]
-    this.updateScore(overlap_score);
-  }
   computeConfMatFromArray(
     pred: Array<number>,
     gt: Array<number>,
@@ -310,8 +316,8 @@ export class ScoresService {
     this.initConfMat();
     this.computeConfMatFromArray(pred, gt, this.confusionMatrix);
     this.micro_overall_acc = Stats.micro_overall_acc(gt, pred);
-    let overlap_scores = Stats.calculateOverlap(gt, pred);
-    this.updateScore(overlap_scores);
+    this.oneOverlapScore = Stats.calculateOverlap(gt, pred);
+    this.updateScore(this.oneOverlapScore);
   }
 
   updateConfusionMatrixFromArrayMultiVideos(pred: Array<number>, gt: Array<number>, i:number, video_count : number) {
@@ -322,33 +328,5 @@ export class ScoresService {
     this.calculateMultiScore(overlap_scores, i, video_count);
   }
 
-  computeConfMat(
-    img1: Uint8ClampedArray,
-    img2: Uint8ClampedArray,
-    confMat: Array<Array<number>>
-  ) {
-    for (let i = 0; i < img1.length; i += 4) {
-      if (
-        img2[i] > 0 ||
-        img2[i + 1] > 0 ||
-        img2[i + 2] > 0 ||
-        img1[i] > 0 ||
-        img1[i + 1] > 0 ||
-        img1[i + 2] > 0
-      ) {
-        let rgb_bg = img1.slice(i, i + 3);
-        let rgb = img2.slice(i, i + 3);
-        let gt_class = this.classService.getClassFromRGB(rgb_bg);
-        let pred_class = this.classService.getClassFromRGB(rgb);
-        if (pred_class >= 0 && gt_class >= 0) {
-          confMat[pred_class][gt_class] += 1;
-        } else {
-          confMat[0][0] += 1;
-        }
-      } else {
-        confMat[0][0] += 1;
-      }
-    }
-  }
 
 }

@@ -10,7 +10,6 @@
     <mat-icon>menu</mat-icon>
     Options
   </button>
-  <!--<h1 *ngIf="UICtrlService.isSegmentation"><a routerLink="/welcome">Segmentation Metrics</a></h1>-->
   <h1 *ngIf="!UICtrlService.isSegmentation"><a routerLink="/welcome">Classification Metrics</a></h1>
 
   <button
@@ -163,7 +162,7 @@
       <mat-slide-toggle
               class="example-margin"
               [checked]="UICtrlService.showNaN"
-              (change)="UICtrlService.toggleNaN()"
+              (change)="UICtrlService.toggleNaN(); scoresService.onToggleChange()"
               matTooltip="Show the segmentation metrics in the Metrics drawer"
               [matTooltipPosition]="'right'"
       >

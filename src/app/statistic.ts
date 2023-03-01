@@ -42,9 +42,6 @@ export class Stats {
   diagValues: Array<number>;
   mcc_nominator: number = 0;
   total_correct_predicted : number = 0;
-  total_tp : number = 0;
-  total_fn : number = 0;
-  total_fp : number = 0;
   total_video_length : number = 0;
   x: number;
   y:number;
@@ -169,8 +166,6 @@ export class Stats {
 
   updateScore(overlap_score: number[], overall_acc : number[], micro_acc : number, convertNaN : boolean): Array<Score> {
     let scores = new Array<Score>();
-    let macro_f1_precision = 0;
-    let macro_f1_recall = 0;
     if (this.n_classes == 2) {
       let stats = this.getBinaryClassStats();
       for (const [key, value] of stats) {
@@ -184,12 +179,6 @@ export class Stats {
       let overall_accuracy = this.diagValues.reduce((a, b) => a+b);
       this.total_correct_predicted += overall_accuracy;
       this.total_video_length += this.S;
-
-      for(let i=0; i<this.n_classes; i++) {
-          this.total_tp += this.diagValues[i];
-          this.total_fp += this.sumCols[i] - this.diagValues[i];
-          this.total_fn += this.sumRows[i] - this.diagValues[i];
-      }
 
       overall_accuracy /= this.S;
       microStats.set('Overall Accuracy', overall_accuracy);
