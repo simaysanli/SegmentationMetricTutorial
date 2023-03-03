@@ -635,7 +635,7 @@ export class SurgicalPhaseComponent implements OnInit {
   }
 
   onFileSelected(event: any) {
-    const path = '../../../assets/edge_case_files/' + event.value;
+    const path = 'assets/edge_case_files/' + event.value;
     const reader = new FileReader();
 
     fetch(path)
